@@ -84,6 +84,9 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
   const [taskItem, setTaskItem] = useState<JSX.Element>(<div />);
   const [isTextInside, setIsTextInside] = useState(true);
 
+  const isMilestone =
+  task.typeInternal === "milestone" || (task as any).type === "milestone";
+
   useEffect(() => {
     switch (task.typeInternal) {
       case "milestone":
@@ -104,9 +107,12 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
 
   useEffect(() => {
     if (textRef.current) {
-      setIsTextInside(textRef.current.getBBox().width < task.x2 - task.x1);
+      const width = task.x2 - task.x1;
+
+      const inside = textRef.current.getBBox().width < width;
+      setIsTextInside(isMilestone ? false : inside);
     }
-  }, [task.x1, task.x2, task.name]);
+  }, [task.x1, task.x2, task.name, isMilestone]);
 
   const getX = () => {
     const width = task.x2 - task.x1;
@@ -169,7 +175,6 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
         {task.name}
       </text>
 
-      {/* متای کنار لیبل */}
       {barContent && (
         <TaskBarMeta
           xLabel={xLabel}

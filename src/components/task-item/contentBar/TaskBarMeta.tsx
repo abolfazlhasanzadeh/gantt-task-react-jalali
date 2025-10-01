@@ -150,7 +150,7 @@ function InfoIconTip({
       </svg>
 
       {lines.length > 0 && (
-        <g transform={`translate(${tipDX}, ${tipDY})`} style={{ display: open ? "block" : "none" }}>
+        <g className="tooltip-addon" transform={`translate(${tipDX}, ${tipDY})`} style={{ display: open ? "block" : "none" }}>
           <rect
             x="0" y="0" rx="6"
             width={tipW} height={tipH}

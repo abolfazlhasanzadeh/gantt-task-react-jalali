@@ -1,13 +1,19 @@
 import React from "react";
 import { Task, ViewMode, Gantt } from "gantt-task-react";
 import { ViewSwitcher } from "./components/view-switcher";
-import { getStartEndDateForProject, initTasks } from "./helper";
+import { getStartEndDateForProject } from "./helper";
 import "gantt-task-react/dist/index.css";
+import { transformActivitiesToTasks } from "./data";
 
 // Init
 const App = () => {
   const [view, setView] = React.useState<ViewMode>(ViewMode.Day);
-  const [tasks, setTasks] = React.useState<Task[]>(initTasks());
+
+
+  const tasssk = transformActivitiesToTasks()
+  console.log(tasssk);
+  
+  const [tasks, setTasks] = React.useState<Task[]>(tasssk);
   const [isChecked, setIsChecked] = React.useState(true);
   let columnWidth = 65;
   if (view === ViewMode.Year) {
