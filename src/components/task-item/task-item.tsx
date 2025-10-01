@@ -5,7 +5,51 @@ import { Bar } from "./bar/bar";
 import { BarSmall } from "./bar/bar-small";
 import { Milestone } from "./milestone/milestone";
 import { Project } from "./project/project";
-import style from "./task-list.module.css";
+import TaskBarMeta from "./contentBar/TaskBarMeta";
+
+type TooltipCtx = { name: string; start?: string | Date; end?: string | Date; progress?: number | null | undefined };
+
+export type BarContentProps = {
+  progress?: number | null;
+
+  showPercent?: boolean;
+  showDonut?: boolean;
+
+  tooltip?: string[] | ((ctx: TooltipCtx) => string[]);
+
+  donutRadius?: number;
+  donutStroke?: number;
+  gapX?: number;
+  itemGap?: number;
+  numberLocale?: string;
+  trackColor?: string;
+  arcColor?: string;
+  percentColor?: string;
+
+  showInfoIcon?: boolean;
+  infoIconSize?: number;
+  infoIconColor?: string;
+
+  tooltipBg?: string;
+  tooltipBgOpacity?: number;
+  tooltipStroke?: string;
+  tooltipStrokeOpacity?: number;
+  tooltipTextColor?: string;
+
+  // بک‌گراند قرص‌شکل
+  bgEnabled?: boolean;
+  bgFill?: string;
+  bgOpacity?: number;
+  bgStroke?: string;
+  bgStrokeOpacity?: number;
+  bgStrokeWidth?: number;
+  bgPadX?: number;
+  bgPadY?: number;
+  bgRadius?: number;
+
+  // فاصلهٔ اضافه وقتی بیرون از بار است
+  outsideExtraGap?: number; // default در TaskBarMeta = 8
+};
 
 export type TaskItemProps = {
   task: BarTask;
@@ -21,6 +65,7 @@ export type TaskItemProps = {
     selectedTask: BarTask,
     event?: React.MouseEvent | React.KeyboardEvent
   ) => any;
+  barContent?: BarContentProps;
 };
 
 export const TaskItem: React.FC<TaskItemProps> = props => {
@@ -32,9 +77,9 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     isSelected,
     rtl,
     onEventStart,
-  } = {
-    ...props,
-  };
+    barContent,
+  } = props;
+
   const textRef = useRef<SVGTextElement>(null);
   const [taskItem, setTaskItem] = useState<JSX.Element>(<div />);
   const [isTextInside, setIsTextInside] = useState(true);
@@ -54,13 +99,14 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
         setTaskItem(<Bar {...props} />);
         break;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [task, isSelected]);
 
   useEffect(() => {
     if (textRef.current) {
       setIsTextInside(textRef.current.getBBox().width < task.x2 - task.x1);
     }
-  }, [textRef, task]);
+  }, [task.x1, task.x2, task.name]);
 
   const getX = () => {
     const width = task.x2 - task.x1;
@@ -80,6 +126,9 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     }
   };
 
+  const xLabel = getX();
+  const centerY = task.y + taskHeight * 0.5;
+  
   return (
     <g
       onKeyDown={e => {
@@ -108,18 +157,68 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
       }}
     >
       {taskItem}
+
       <text
-        x={getX()}
-        y={task.y + taskHeight * 0.5}
-        className={
-          isTextInside
-            ? style.barLabel
-            : style.barLabel && style.barLabelOutside
-        }
+        x={xLabel}
+        y={centerY}
         ref={textRef}
+        dominantBaseline="middle"
+        textAnchor={isTextInside ? "middle" : (rtl ? "end" : "start")}
+        style={{ opacity: 0, pointerEvents: "none" }}
       >
         {task.name}
       </text>
+
+      {/* متای کنار لیبل */}
+      {barContent && (
+        <TaskBarMeta
+          xLabel={xLabel}
+          y={centerY}
+          rtl={rtl}
+          name={task.name}
+          start={(task as any).start}
+          end={(task as any).end}
+          progress={task.progress}
+
+          showPercent={barContent.showPercent}
+          showDonut={barContent.showDonut}
+          tooltip={barContent.tooltip}
+
+          donutRadius={barContent.donutRadius}
+          donutStroke={barContent.donutStroke}
+          gapX={barContent.gapX}
+          itemGap={barContent.itemGap}
+          numberLocale={barContent.numberLocale}
+          trackColor={barContent.trackColor}
+          arcColor={barContent.arcColor}
+          percentColor={barContent.percentColor}
+
+          showInfoIcon={barContent.showInfoIcon}
+          infoIconSize={barContent.infoIconSize}
+          infoIconColor={barContent.infoIconColor}
+
+          tooltipBg={barContent.tooltipBg}
+          tooltipBgOpacity={barContent.tooltipBgOpacity}
+          tooltipStroke={barContent.tooltipStroke}
+          tooltipStrokeOpacity={barContent.tooltipStrokeOpacity}
+          tooltipTextColor={barContent.tooltipTextColor}
+
+          // بک‌گراند قرص‌شکل
+          bgEnabled={barContent.bgEnabled}
+          bgFill={barContent.bgFill}
+          bgOpacity={barContent.bgOpacity}
+          bgStroke={barContent.bgStroke}
+          bgStrokeOpacity={barContent.bgStrokeOpacity}
+          bgStrokeWidth={barContent.bgStrokeWidth}
+          bgPadX={barContent.bgPadX}
+          bgPadY={barContent.bgPadY}
+          bgRadius={barContent.bgRadius}
+
+          // هماهنگی با لیبل:
+          isInside={isTextInside}
+          outsideExtraGap={barContent.outsideExtraGap ?? 5}
+        />
+      )}
     </g>
   );
 };

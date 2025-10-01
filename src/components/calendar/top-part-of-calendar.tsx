@@ -33,6 +33,7 @@ export const TopPartOfCalendar: React.FC<TopPartOfCalendarProps> = ({
         y={yText}
         x={xText}
         className={styles.calendarTopText}
+        fontSize={16}
       >
         {value}
       </text>

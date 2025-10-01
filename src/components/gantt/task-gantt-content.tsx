@@ -62,15 +62,28 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
   const [isMoving, setIsMoving] = useState(false);
 
   // create xStep
-  useEffect(() => {
-    const dateDelta =
-      dates[1].getTime() -
-      dates[0].getTime() -
-      dates[1].getTimezoneOffset() * 60 * 1000 +
-      dates[0].getTimezoneOffset() * 60 * 1000;
-    const newXStep = (timeStep * columnWidth) / dateDelta;
-    setXStep(newXStep);
-  }, [columnWidth, dates, timeStep]);
+// create xStep
+useEffect(() => {
+  if (!dates || dates.length < 2) { setXStep(1); return; }
+
+  // اگر به‌هر دلیل تاریخ‌های پشت‌سرهم تکراری شد (DST/محاسبه جلالی)، حذف‌شون کن
+  const d0 = dates[0];
+  const d1 = dates[1];
+
+  // اختلاف واقعیِ زمانی بین دو ستون، مستقل از RTL و اختلاف DST
+  const t0 = d0.getTime();
+  const t1 = d1.getTime();
+  const tz0 = d0.getTimezoneOffset();
+  const tz1 = d1.getTimezoneOffset();
+
+  // اختلاف «خالص»: فاصله ستونی با خنثی کردن تغییر DST
+  const delta = Math.abs((t1 - t0) - (tz1 - tz0) * 60 * 1000);
+  const safeDelta = delta || 1; // هرگز صفر نشه
+
+  const step = (timeStep * columnWidth) / safeDelta;
+  setXStep(Number.isFinite(step) && step > 0 ? step : 1);
+}, [columnWidth, dates, timeStep]);
+
 
   useEffect(() => {
     const handleMouseMove = async (event: MouseEvent) => {
@@ -260,11 +273,27 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
     }
   };
 
+
+
   return (
     <g className="content">
       <g className="arrows" fill={arrowColor} stroke={arrowColor}>
         {tasks.map(task => {
           return task.barChildren.map(child => {
+                    const succ = tasks[child.index];
+        if (!succ) return null;
+
+        const predId = task.id;
+        const succId = succ.id;
+            const linkType =
+          (succ as any).linkTypes?.[predId] ||
+          // در صورت نبودن مپ دقیق: از relsTo/From اگر داشته باشی
+          (succ as any).relsTo?.[predId] ||
+          (task as any).relsFrom?.[succId] ||
+          // یا fallback به یک linkType کلی روی succ (اگر قبلاً گذاشتی)
+          (succ as any).linkType ||
+          // در نهایت پیش‌فرض
+          "FS";
             return (
               <Arrow
                 key={`Arrow from ${task.id} to ${tasks[child.index].id}`}
@@ -274,6 +303,8 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
                 taskHeight={taskHeight}
                 arrowIndent={arrowIndent}
                 rtl={rtl}
+                linkType={linkType}
+                
               />
             );
           });
@@ -293,6 +324,30 @@ export const TaskGanttContent: React.FC<TaskGanttContentProps> = ({
               key={task.id}
               isSelected={!!selectedTask && task.id === selectedTask.id}
               rtl={rtl}
+              barContent={{
+                progress: 68,
+                showDonut: true,
+                showPercent: true,
+                tooltip: ({ name, start, end, progress }) => [
+                  `عنوان: ${name}`,
+                  start ? `شروع: ${new Date(start as any).toLocaleDateString("fa-IR")}` : "",
+                  end   ? `پایان: ${new Date(end as any).toLocaleDateString("fa-IR")}`   : "",
+                  progress != null ? `پیشرفت: ${Math.round(progress!)} درصد` : "",
+                ].filter(Boolean),
+
+                // آیکن
+                showInfoIcon: true,
+                infoIconSize: 18,
+                infoIconColor: "#6B7280",
+
+                // تم تولتیپ
+                tooltipBg: "#111827",
+                tooltipBgOpacity: 0.95,
+                tooltipStroke: "#FFFFFF",
+                tooltipStrokeOpacity: 0.08,
+                tooltipTextColor: "#fff",
+                bgStrokeWidth: 2,
+              }}
             />
           );
         })}

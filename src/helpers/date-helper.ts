@@ -232,3 +232,128 @@ export const getWeekNumberISO8601 = (date: Date) => {
 export const getDaysInMonth = (month: number, year: number) => {
   return new Date(year, month + 1, 0).getDate();
 };
+
+
+
+// ===== Persian (Jalali) month boundaries =====
+
+type G = { gy: number; gm: number; gd: number };
+type J = { jy: number; jm: number; jd: number };
+
+const div = (a: number, b: number) => ~~(a / b);
+
+// Gregorian <-> JDN
+function g2d(gy: number, gm: number, gd: number) {
+  const a = div(14 - gm, 12), y = gy + 4800 - a, m = gm + 12 * a - 3;
+  return gd + div(153 * m + 2, 5) + 365 * y + div(y, 4) - div(y, 100) + div(y, 400) - 32045;
+}
+function d2g(jdn: number): G {
+  const j = jdn + 32044;
+  const g = div(j, 146097);
+  const dg = j % 146097;
+  const c = div((div(dg, 36524) + 1) * 3, 4);
+  const dc = dg - c * 36524;
+  const b = div(dc, 1461);
+  const db = dc % 1461;
+  const a = div((div(db, 365) + 1) * 3, 4);
+  const da = db - a * 365;
+  const y = g * 400 + c * 100 + b * 4 + a;
+  const m = div(da * 5 + 308, 153) - 2;
+  const d = da - div((m + 4) * 153, 5) + 122;
+  return { gy: y - 4800 + div(m + 2, 12), gm: (m + 2) % 12 + 1, gd: d + 1 };
+}
+
+// Jalali <-> JDN
+function j2d(jy: number, jm: number, jd: number) {
+  const jy2 = jy <= 979 ? jy + 621 : jy - 979;
+  const r =
+    jy2 * 365 + div(jy2, 33) * 8 + div((jy2 % 33 + 3), 4) + 79 + jd +
+    (jm < 7 ? (jm - 1) * 31 : (jm - 7) * 30 + 186);
+  return r + 1948320;
+}
+function d2j(jdn: number): J {
+  let j = jdn - 1948320;
+  let y = 979 + 33 * div(j, 12053);
+  j %= 12053;
+  y += 4 * div(j, 1461);
+  j %= 1461;
+  if (j >= 366) { y += div(j - 1, 365); j = (j - 1) % 365; }
+  const jm = j < 186 ? 1 + div(j, 31) : 7 + div(j - 186, 30);
+  const jd = j < 186 ? 1 + (j % 31) : 1 + ((j - 186) % 30);
+  return { jy: y, jm, jd };
+}
+
+export function toJalaali(d: Date): J { return d2j(g2d(d.getFullYear(), d.getMonth() + 1, d.getDate())); }
+export function toGregorian(jy: number, jm: number, jd: number): G { return d2g(j2d(jy, jm, jd)); }
+
+/** مرزهای ماه‌های جلالی برای بازه‌ی start..end */
+export function seedDatesJalaliMonths(start: Date, end: Date): Date[] {
+  const sJ = toJalaali(start);
+  let jy = sJ.jy, jm = sJ.jm;
+
+  // اولِ ماهِ جلالیِ جاری
+  let g = toGregorian(jy, jm, 1);
+  let cur = new Date(g.gy, g.gm - 1, g.gd);
+
+  // اگر این مرز بعد از start بود، یک ماه عقب
+  if (cur > start) {
+    jm--; if (jm < 1) { jm = 12; jy--; }
+    g = toGregorian(jy, jm, 1);
+    cur = new Date(g.gy, g.gm - 1, g.gd);
+  }
+
+  const out: Date[] = [];
+  while (cur <= end) {
+    out.push(new Date(cur));
+    jm++; if (jm > 12) { jm = 1; jy++; }
+    g = toGregorian(jy, jm, 1);
+    cur = new Date(g.gy, g.gm - 1, g.gd);
+  }
+  out.push(new Date(end)); // لبه‌ی راست آخرین ستون
+  return out;
+}
+
+
+export const isPersianCalendarLocale = (locale: string) =>
+  /fa/i.test(locale) || /u-ca-persian/i.test(locale);
+
+// DTF برای گرفتن parts جلالی
+const jalaliDTF = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+  year: "numeric",
+  month: "numeric",
+  day: "numeric",
+});
+
+const getJalaliParts = (d: Date) => {
+  const parts = jalaliDTF.formatToParts(d);
+  const y = +parts.find(p => p.type === "year")!.value;
+  const m = +parts.find(p => p.type === "month")!.value;
+  const day = +parts.find(p => p.type === "day")!.value;
+  return { y, m, day };
+};
+
+// شروع ماه جلالی (با قدم‌های روزانه عقب می‌رویم تا روز=1)
+export const startOfJalaliMonth = (date: Date) => {
+  let d = startOfDate(date, "day");
+  while (getJalaliParts(d).day !== 1) {
+    d = addToDate(d, -1, "day");
+  }
+  return d;
+};
+
+// تولید ستون‌ها بر اساس شروع ماه‌های جلالی در بازه
+export const seedDatesPersianMonth = (startDate: Date, endDate: Date) => {
+  const out: Date[] = [];
+  let d = startOfJalaliMonth(startDate);
+  out.push(d);
+  while (d < endDate) {
+    // بریم تا اول ماه جلالی بعدی
+    let next = addToDate(d, 1, "day");
+    while (getJalaliParts(next).day !== 1) {
+      next = addToDate(next, 1, "day");
+    }
+    out.push(next);
+    d = next;
+  }
+  return out;
+};

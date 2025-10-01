@@ -1,9 +1,9 @@
 {
-  "name": "gantt-task-react-jalali",
-  "version": "0.6.0",
+  "name": "gantt-task-react-jalali-rtl",
+  "version": "0.7.0",
   "description": "Interactive Gantt Chart for React with TypeScript.",
-  "author": "Sadeghpro <sadeghpro91@gmail.com>",
-  "homepage": "https://github.com/sadeghpro/gantt-task-react",
+  "author": "abolfazlhasanzadeh <abolfazlhasanzadeh83@gmail.com>",
+  "homepage": "https://github.com/abolfazlhasanzadeh/gantt-task-react",
   "license": "MIT",
   "repository": "MaTeMaTuK/gantt-task-react",
   "main": "dist/index.js",
@@ -21,6 +21,8 @@
     "gantt-chart",
     "gantt chart",
     "react-gantt",
+    "gantt-rtl",
+    "gantt-jalali",
     "task"
   ],
   "scripts": {

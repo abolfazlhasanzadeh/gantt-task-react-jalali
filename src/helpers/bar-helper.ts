@@ -2,6 +2,62 @@ import { Task } from "../types/public-types";
 import { BarTask, TaskTypeInternal } from "../types/bar-task";
 import { BarMoveAction } from "../types/gantt-task-actions";
 
+const MS_DAY = 24 * 60 * 60 * 1000;
+
+const uniqueAsc = (dates: Date[]) => {
+  const seen = new Set<number>();
+  return dates
+    .slice()
+    .sort((a, b) => a.getTime() - b.getTime())
+    .filter(d => {
+      const t = d.getTime();
+      if (seen.has(t)) return false; // جلوی دوبل‌ها (مثل اندیس 0 و 1 تو ماهانهٔ تو) رو می‌گیریم
+      seen.add(t);
+      return true;
+    });
+};
+
+const median = (xs: number[]) => {
+  if (xs.length === 0) return 0;
+  const s = xs.slice().sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+};
+
+const stepDays = (dates: Date[]) => {
+  const ds = uniqueAsc(dates);
+  if (ds.length < 2) return 0;
+  const diffs = [];
+  for (let i = 1; i < ds.length; i++) {
+    diffs.push(ds[i].getTime() - ds[i - 1].getTime());
+  }
+  // به‌جای میانگین از میانه استفاده می‌کنیم تا یکی دو اختلاف غیرعادی اثر نذاره
+  return Math.round(median(diffs) / MS_DAY);
+};
+
+export const isYearlyGrid = (dates: Date[]) => {
+  const d = stepDays(dates);
+  // سالانه: حدود 365 (لیپ‌یر و تغییر تقویم‌ها رو با تلورانس می‌پذیریم)
+  return d >= 330; // امن‌تر از 360 تا اگر مرزها دقیق اول سال نبود باز هم تشخیص بده
+};
+
+export const isMonthlyGrid = (dates: Date[]) => {
+  const d = stepDays(dates);
+  // ماهانه (شمسی/میلادی): معمولاً 29..31 روز، برای اطمینان 27..33 گذاشتیم
+  return d >= 27 && d <= 33;
+};
+
+// اگه لازم شد:
+export const isWeeklyGrid = (dates: Date[]) => {
+  const d = stepDays(dates);
+  return d >= 6 && d <= 8;
+};
+
+export const isDailyGrid = (dates: Date[]) => {
+  const d = stepDays(dates);
+  return d >= 1 && d <= 1; // گرد شده
+};
+
 export const convertToBarTasks = (
   tasks: Task[],
   dates: Date[],
@@ -95,7 +151,8 @@ const convertToBarTask = (
         barCornerRadius,
         handleWidth,
         milestoneBackgroundColor,
-        milestoneBackgroundSelectedColor
+        milestoneBackgroundSelectedColor,
+        rtl
       );
       break;
     case "project":
@@ -154,7 +211,7 @@ const convertToBar = (
   let x1: number;
   let x2: number;
   if (rtl) {
-    x2 = taskXCoordinateRTL(task.start, dates, columnWidth);
+    x2 = taskXCoordinateRTL(task.start, dates, columnWidth);    
     x1 = taskXCoordinateRTL(task.end, dates, columnWidth);
   } else {
     x1 = taskXCoordinate(task.start, dates, columnWidth);
@@ -210,9 +267,15 @@ const convertToMilestone = (
   barCornerRadius: number,
   handleWidth: number,
   milestoneBackgroundColor: string,
-  milestoneBackgroundSelectedColor: string
+  milestoneBackgroundSelectedColor: string,
+  rtl = false 
 ): BarTask => {
-  const x = taskXCoordinate(task.start, dates, columnWidth);
+
+    
+    const x = rtl
+    ? (isMonthlyGrid(dates) ? taskXCoordinate(task.start, dates, columnWidth) + columnWidth - 175 :taskXCoordinate(task.start, dates, columnWidth) + columnWidth  )
+    : taskXCoordinate(task.start, dates, columnWidth);
+
   const y = taskYCoordinate(index, rowHeight, taskHeight);
 
   const x1 = x - taskHeight * 0.5;
@@ -246,23 +309,52 @@ const convertToMilestone = (
   };
 };
 
-const taskXCoordinate = (xDate: Date, dates: Date[], columnWidth: number) => {
-  const index = dates.findIndex(d => d.getTime() >= xDate.getTime()) - 1;
+  const taskXCoordinate = (
+    xDate: Date,
+    dates: Date[],
+    columnWidth: number,
+    rtl = false
+  ) => {
+    if (!dates || dates.length < 2) return 0;
 
-  const remainderMillis = xDate.getTime() - dates[index].getTime();
-  const percentOfInterval =
-    remainderMillis / (dates[index + 1].getTime() - dates[index].getTime());
-  const x = index * columnWidth + percentOfInterval * columnWidth;
-  return x;
-};
+    const asc = dates[0].getTime() <= dates[dates.length - 1].getTime();
+    const ds = asc ? dates : [...dates].reverse();
+
+    const t = xDate.getTime();
+
+    if (t <= ds[0].getTime()) {
+      const x = 0;
+      const total = (ds.length - 1) * columnWidth;
+      return rtl ? total - x : x;
+    }
+    if (t >= ds[ds.length - 1].getTime()) {
+      const x = (ds.length - 1) * columnWidth;
+      const total = (ds.length - 1) * columnWidth;
+      return rtl ? total - x : x;
+    }
+
+    let i = ds.findIndex(d => d.getTime() > t) - 1; 
+    i = Math.max(0, Math.min(ds.length - 2, i));
+
+    const t0 = ds[i].getTime();
+    const t1 = ds[i + 1].getTime();
+    const percent = (t - t0) / Math.max(1, (t1 - t0));
+    let x = i * columnWidth + percent * columnWidth;
+
+    const total = (ds.length - 1) * columnWidth;
+    if (!asc) x = total - x;   
+    if (rtl) x = total - x;  
+
+    return x;
+  };
 const taskXCoordinateRTL = (
   xDate: Date,
   dates: Date[],
   columnWidth: number
 ) => {
-  let x = taskXCoordinate(xDate, dates, columnWidth);
-  x += columnWidth;
-  return x;
+  const x = taskXCoordinate(xDate, dates, columnWidth);
+  const MONTHLY_RTL_FIX = 173; 
+  return isMonthlyGrid(dates) ? (x + columnWidth - MONTHLY_RTL_FIX) : (x + columnWidth);
 };
 const taskYCoordinate = (
   index: number,
@@ -363,19 +455,29 @@ const moveByX = (x: number, xStep: number, task: BarTask) => {
   return [newX1, newX2];
 };
 
+
 const dateByX = (
   x: number,
   taskX: number,
   taskDate: Date,
   xStep: number,
-  timeStep: number
+  timeStep: number,
+  rtl = false
 ) => {
-  let newDate = new Date(((x - taskX) / xStep) * timeStep + taskDate.getTime());
-  newDate = new Date(
-    newDate.getTime() +
-      (newDate.getTimezoneOffset() - taskDate.getTimezoneOffset()) * 60000
-  );
-  return newDate;
+  if (!Number.isFinite(xStep) || xStep === 0) return new Date(taskDate);
+
+  // فاصلهٔ زمانی متناظر با جابجایی پیکسلی
+  const deltaMs = ((x - taskX) / xStep) * timeStep;
+
+  // در RTL جهت برعکس است
+  const ms = taskDate.getTime() + (rtl ? -deltaMs : deltaMs);
+
+  // همان نرمال‌سازی اختلاف DST مثل قبل
+  const newDate = new Date(ms);
+  const offsetDiffMin =
+    newDate.getTimezoneOffset() - taskDate.getTimezoneOffset();
+
+  return new Date(newDate.getTime() + offsetDiffMin * 60000);
 };
 
 /**
@@ -399,7 +501,8 @@ export const handleTaskBySVGMouseEvent = (
         selectedTask,
         xStep,
         timeStep,
-        initEventX1Delta
+        initEventX1Delta,
+        rtl
       );
       break;
     default:
@@ -458,7 +561,8 @@ const handleTaskBySVGMouseEventForBar = (
             selectedTask.x1,
             selectedTask.end,
             xStep,
-            timeStep
+            timeStep,
+            true
           );
         } else {
           changedTask.start = dateByX(
@@ -466,7 +570,8 @@ const handleTaskBySVGMouseEventForBar = (
             selectedTask.x1,
             selectedTask.start,
             xStep,
-            timeStep
+            timeStep,
+            false
           );
         }
         const [progressWidth, progressX] = progressWithByParams(
@@ -491,7 +596,8 @@ const handleTaskBySVGMouseEventForBar = (
             selectedTask.x2,
             selectedTask.start,
             xStep,
-            timeStep
+            timeStep,
+            true
           );
         } else {
           changedTask.end = dateByX(
@@ -499,7 +605,8 @@ const handleTaskBySVGMouseEventForBar = (
             selectedTask.x2,
             selectedTask.end,
             xStep,
-            timeStep
+            timeStep,
+            false
           );
         }
         const [progressWidth, progressX] = progressWithByParams(
@@ -526,14 +633,16 @@ const handleTaskBySVGMouseEventForBar = (
           selectedTask.x1,
           selectedTask.start,
           xStep,
-          timeStep
+          timeStep,
+          rtl
         );
         changedTask.end = dateByX(
           newMoveX2,
           selectedTask.x2,
           selectedTask.end,
           xStep,
-          timeStep
+          timeStep,
+          rtl
         );
         changedTask.x1 = newMoveX1;
         changedTask.x2 = newMoveX2;
@@ -558,7 +667,8 @@ const handleTaskBySVGMouseEventForMilestone = (
   selectedTask: BarTask,
   xStep: number,
   timeStep: number,
-  initEventX1Delta: number
+  initEventX1Delta: number,
+  rtl: any
 ): { isChanged: boolean; changedTask: BarTask } => {
   const changedTask: BarTask = { ...selectedTask };
   let isChanged = false;
@@ -576,7 +686,8 @@ const handleTaskBySVGMouseEventForMilestone = (
           selectedTask.x1,
           selectedTask.start,
           xStep,
-          timeStep
+          timeStep,
+          rtl
         );
         changedTask.end = changedTask.start;
         changedTask.x1 = newMoveX1;

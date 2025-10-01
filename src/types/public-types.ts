@@ -1,3 +1,5 @@
+import { HolidayHighlightOptions } from "../components/grid/grid-body";
+
 export enum ViewMode {
   Hour = "Hour",
   QuarterDay = "Quarter Day",
@@ -9,6 +11,13 @@ export enum ViewMode {
   QuarterYear = "QuarterYear",
   Year = "Year",
 }
+
+export type LinkType = "FS" | "SS" | "FF" | "SF";
+
+export type TaskDependency =
+  | string
+  | { id: string; type?: LinkType };
+
 export type TaskType = "task" | "milestone" | "project";
 export interface Task {
   id: string;
@@ -28,7 +37,8 @@ export interface Task {
   };
   isDisabled?: boolean;
   project?: string;
-  dependencies?: string[];
+  dependencies?: any[];
+  linkType?: LinkType; 
   hideChildren?: boolean;
   displayOrder?: number;
 }
@@ -85,6 +95,7 @@ export interface DisplayOption {
   rtl?: boolean;
   weekName?: string;
   quarterName?: string;
+  holidayHighlight?: HolidayHighlightOptions
 }
 
 export interface StylingOption {

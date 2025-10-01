@@ -1,7 +1,16 @@
+// src/components/grid/grid-body.tsx
 import React, { ReactChild } from "react";
 import { Task } from "../../types/public-types";
 import { addToDate } from "../../helpers/date-helper";
 import styles from "./grid.module.css";
+import { isDailyGrid } from "../../helpers/bar-helper";
+
+export type HolidayHighlightOptions = {
+  includeFridays?: boolean;
+  holidayDates?: string[];
+  color?: string;
+  placeUnderToday?: boolean;
+};
 
 export type GridBodyProps = {
   tasks: Task[];
@@ -11,7 +20,14 @@ export type GridBodyProps = {
   columnWidth: number;
   todayColor: string;
   rtl: boolean;
+  holidayHighlight?: HolidayHighlightOptions
 };
+
+const toISO = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+
 export const GridBody: React.FC<GridBodyProps> = ({
   tasks,
   dates,
@@ -20,7 +36,16 @@ export const GridBody: React.FC<GridBodyProps> = ({
   columnWidth,
   todayColor,
   rtl,
+  holidayHighlight
 }) => {
+
+
+  const includeFridays = holidayHighlight?.includeFridays ?? true;
+  const holidayDates = holidayHighlight?.holidayDates ?? [];
+  const holidayColor = holidayHighlight?.color ?? "rgba(239,68,68,0.18)";
+  const placeUnderToday = holidayHighlight?.placeUnderToday ?? true;
+  const holidaySet = new Set(holidayDates.map(s => s.trim()));
+
   let y = 0;
   const gridRows: ReactChild[] = [];
   const rowLines: ReactChild[] = [
@@ -42,6 +67,7 @@ export const GridBody: React.FC<GridBodyProps> = ({
         width={svgWidth}
         height={rowHeight}
         className={styles.gridRow}
+        strokeDasharray="4 3" 
       />
     );
     rowLines.push(
@@ -52,6 +78,7 @@ export const GridBody: React.FC<GridBodyProps> = ({
         x2={svgWidth}
         y2={y + rowHeight}
         className={styles.gridRowLine}
+        strokeDasharray="4 3" 
       />
     );
     y += rowHeight;
@@ -61,8 +88,14 @@ export const GridBody: React.FC<GridBodyProps> = ({
   let tickX = 0;
   const ticks: ReactChild[] = [];
   let today: ReactChild = <rect />;
+
+  // 👇 مستطیل‌های تعطیلی که می‌سازیم
+  const holidaysRects: ReactChild[] = [];
+
   for (let i = 0; i < dates.length; i++) {
     const date = dates[i];
+
+    // خطوط عمودی
     ticks.push(
       <line
         key={date.getTime()}
@@ -73,11 +106,13 @@ export const GridBody: React.FC<GridBodyProps> = ({
         className={styles.gridTick}
       />
     );
+
+    // امروز (همان منطق اصلی)
     if (
       (i + 1 !== dates.length &&
         date.getTime() < now.getTime() &&
         dates[i + 1].getTime() >= now.getTime()) ||
-      // if current date is last
+      // اگر آخرین ستون است
       (i !== 0 &&
         i + 1 === dates.length &&
         date.getTime() < now.getTime() &&
@@ -97,7 +132,7 @@ export const GridBody: React.FC<GridBodyProps> = ({
         />
       );
     }
-    // rtl for today
+    // RTL today
     if (
       rtl &&
       i + 1 !== dates.length &&
@@ -114,14 +149,48 @@ export const GridBody: React.FC<GridBodyProps> = ({
         />
       );
     }
+
+    // 👇 تعطیلات: جمعه‌ها + لیست سفارشی
+    const isFriday = date.getDay() === 5;
+    const isListed = holidaySet.has(toISO(date));
+    if ((includeFridays && isFriday) || isListed) {
+      holidaysRects.push(
+        <rect
+          key={`holiday-${date.getTime()}`}
+          x={tickX}
+          y={0}
+          width={columnWidth}
+          height={y}
+          fill={holidayColor}
+        />
+      );
+    }
+
     tickX += columnWidth;
   }
+
+  const daily = isDailyGrid(dates)  
+
   return (
     <g className="gridBody">
       <g className="rows">{gridRows}</g>
       <g className="rowLines">{rowLines}</g>
       <g className="ticks">{ticks}</g>
-      <g className="today">{today}</g>
+
+      {/* ترتیب لایه: زیر یا روی today */}
+{placeUnderToday && daily && (
+  <g className="holidays">{holidaysRects}</g>
+)}
+{placeUnderToday && daily  && (
+  <g className="today">{today}</g>
+)}
+
+{!placeUnderToday && daily && (
+  <g className="today">{today}</g>
+)}
+{!placeUnderToday && daily && (
+  <g className="holidays">{holidaysRects}</g>
+)}
     </g>
   );
 };

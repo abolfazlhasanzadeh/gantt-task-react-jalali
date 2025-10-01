@@ -76,6 +76,8 @@ const App = () => {
       />
       <h3>Gantt With Unlimited Height</h3>
       <Gantt
+        rtl
+        locale="fa"
         tasks={tasks}
         viewMode={view}
         onDateChange={handleTaskChange}
@@ -87,6 +89,13 @@ const App = () => {
         onExpanderClick={handleExpanderClick}
         listCellWidth={isChecked ? "155px" : ""}
         columnWidth={columnWidth}
+        rowHeight={60}
+        holidayHighlight={{
+          includeFridays: true,
+          holidayDates: ["2025-10-02"],
+          color: "rgba(239,68,68,0.18)",
+          placeUnderToday: false,
+        }}
       />
       <h3>Gantt With Limited Height</h3>
       <Gantt

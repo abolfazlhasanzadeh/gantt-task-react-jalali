@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { ViewMode, GanttProps, Task } from "../../types/public-types";
 import { GridProps } from "../grid/grid";
-import { ganttDateRange, seedDates } from "../../helpers/date-helper";
+import { addToDate, ganttDateRange, seedDates, seedDatesJalaliMonths, startOfDate, toGregorian, toJalaali } from "../../helpers/date-helper";
 import { CalendarProps } from "../calendar/calendar";
 import { TaskGanttContentProps } from "./task-gantt-content";
 import { TaskListHeaderDefault } from "../task-list/task-list-header";
@@ -26,7 +26,7 @@ import styles from "./gantt.module.css";
 
 export const Gantt: React.FunctionComponent<GanttProps> = ({
   tasks,
-  headerHeight = 50,
+  headerHeight = 65,
   columnWidth = 60,
   listCellWidth = "155px",
   titleLable = "Name",
@@ -61,7 +61,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   fontFamily = "Arial, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue",
   fontSize = "14px",
   arrowIndent = 20,
-  todayColor = "rgba(252, 248, 227, 0.5)",
+  todayColor = "#a7dea998",
   viewDate,
   TooltipContent = StandardTooltipContent,
   TaskListHeader = TaskListHeaderDefault,
@@ -73,6 +73,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   onDelete,
   onSelect,
   onExpanderClick,
+  holidayHighlight
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
@@ -115,19 +116,26 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
       filteredTasks = tasks;
     }
     filteredTasks = filteredTasks.sort(sortTasks);
-    const [startDate, endDate] = ganttDateRange(
-      filteredTasks,
-      viewMode,
-      preStepsCount
-    );
-    let newDates = seedDates(startDate, endDate, viewMode);
-    if (rtl) {
-      newDates = newDates.reverse();
-      if (scrollX === -1) {
-        setScrollX(newDates.length * columnWidth);
-      }
-    }
-    setDateSetup({ dates: newDates, viewMode });
+const [startDate, endDate] = ganttDateRange(filteredTasks, viewMode, preStepsCount);
+
+let newDates = seedDates(startDate, endDate, viewMode);
+
+// فقط در ماهانه + فارسی: رنج را جلالی کن
+if (viewMode === ViewMode.Month && /^fa(?:-|$)/i.test(locale)) {
+  // شروع: ابتدای ماه جلالیِ (startDate - preStepsCount ماه)
+  const s0 = startOfDate(addToDate(startDate, -1 * preStepsCount, "month"), "month");
+  // پایان: ابتدای «سال جلالیِ بعد»
+  const ej = toJalaali(endDate);
+  const gNextYearStart = toGregorian(ej.jy + 1, 1, 1);
+  const e0 = new Date(gNextYearStart.gy, gNextYearStart.gm - 1, gNextYearStart.gd);
+  newDates = seedDatesJalaliMonths(s0, e0);
+}
+
+if (rtl) {
+  newDates = newDates.reverse();
+  if (scrollX === -1) setScrollX(newDates.length * columnWidth);
+}
+setDateSetup({ dates: newDates, viewMode });
     setBarTasks(
       convertToBarTasks(
         filteredTasks,
@@ -403,6 +411,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
     dates: dateSetup.dates,
     todayColor,
     rtl,
+    holidayHighlight
   };
   const calendarProps: CalendarProps = {
     dateSetup,
