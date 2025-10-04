@@ -98,7 +98,7 @@ export const GridBody: React.FC<GridBodyProps> = ({
     // خطوط عمودی
     ticks.push(
       <line
-        key={date.getTime()}
+        key={`${date.getTime()}-${i}`}
         x1={tickX}
         y1={0}
         x2={tickX}
@@ -156,7 +156,7 @@ export const GridBody: React.FC<GridBodyProps> = ({
     if ((includeFridays && isFriday) || isListed) {
       holidaysRects.push(
         <rect
-          key={`holiday-${date.getTime()}`}
+          key={`holiday-${date.getTime()}-${i}`}
           x={tickX}
           y={0}
           width={columnWidth}

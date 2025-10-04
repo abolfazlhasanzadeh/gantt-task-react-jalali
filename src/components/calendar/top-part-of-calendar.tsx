@@ -1,3 +1,4 @@
+// src/components/calendar/top-part-of-calendar.tsx
 import React from "react";
 import styles from "./calendar.module.css";
 
@@ -8,6 +9,8 @@ type TopPartOfCalendarProps = {
   y2Line: number;
   xText: number;
   yText: number;
+  // 👇 اضافه: یک شناسهٔ یکتا از والد بگیر
+  uid?: string;
 };
 
 export const TopPartOfCalendar: React.FC<TopPartOfCalendarProps> = ({
@@ -17,23 +20,30 @@ export const TopPartOfCalendar: React.FC<TopPartOfCalendarProps> = ({
   y2Line,
   xText,
   yText,
+  uid,
 }) => {
+  // یک id یکتا بساز اگر والد نداد
+  const safeUid =
+    uid ??
+    `tp-${x1Line}-${y1Line}-${y2Line}-${xText}-${yText}-${value}-${Math.random()
+      .toString(36)
+      .slice(2, 7)}`;
+
   return (
-    <g className="calendarTop">
+    <g className={styles.calendarTop} /* 👈 root key از بیرون داده می‌شود */>
       <line
+        key={`tp-line-${safeUid}`}
         x1={x1Line}
         y1={y1Line}
         x2={x1Line}
         y2={y2Line}
         className={styles.calendarTopTick}
-        key={value + "line"}
       />
       <text
-        key={value + "text"}
+        key={`tp-text-${safeUid}`}
         y={yText}
         x={xText}
         className={styles.calendarTopText}
-        fontSize={16}
       >
         {value}
       </text>

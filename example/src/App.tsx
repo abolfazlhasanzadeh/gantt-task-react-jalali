@@ -5,6 +5,13 @@ import { getStartEndDateForProject } from "./helper";
 import "gantt-task-react/dist/index.css";
 import { transformActivitiesToTasks } from "./data";
 
+
+export const EmptyTooltip: React.FC<{
+  task: Task;
+  fontSize: string;
+  fontFamily: string;
+}> = () => null;
+
 // Init
 const App = () => {
   const [view, setView] = React.useState<ViewMode>(ViewMode.Day);
@@ -83,7 +90,6 @@ const App = () => {
       <h3>Gantt With Unlimited Height</h3>
       <Gantt
         rtl
-        locale="fa"
         tasks={tasks}
         viewMode={view}
         onDateChange={handleTaskChange}
@@ -91,6 +97,7 @@ const App = () => {
         onProgressChange={handleProgressChange}
         onDoubleClick={handleDblClick}
         onClick={handleClick}
+        TooltipContent={EmptyTooltip}
         onSelect={handleSelect}
         onExpanderClick={handleExpanderClick}
         listCellWidth={isChecked ? "155px" : ""}

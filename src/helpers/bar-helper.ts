@@ -271,12 +271,22 @@ const convertToMilestone = (
   rtl = false 
 ): BarTask => {
 
-    
-    const x = rtl
-    ? (isMonthlyGrid(dates) ? taskXCoordinate(task.start, dates, columnWidth) + columnWidth - 175 :taskXCoordinate(task.start, dates, columnWidth) + columnWidth  )
-    : taskXCoordinate(task.start, dates, columnWidth);
+const MONTHLY_RTL_FIX = 85;
+const YEARLY_RTL_FIX = 308;
+const WEEKLY_RTL_FIX = 230
+const x = rtl
+  ? (
+      isMonthlyGrid(dates)
+        ? taskXCoordinate(task.start, dates, columnWidth) + columnWidth - MONTHLY_RTL_FIX
+        : isWeeklyGrid(dates)
+          ? taskXCoordinate(task.start, dates, columnWidth) + columnWidth - WEEKLY_RTL_FIX
+          : isYearlyGrid(dates)
+            ? taskXCoordinate(task.start, dates, columnWidth) + columnWidth - YEARLY_RTL_FIX
+            : taskXCoordinate(task.start, dates, columnWidth) + columnWidth
+    )
+  : taskXCoordinate(task.start, dates, columnWidth);
 
-  const y = taskYCoordinate(index, rowHeight, taskHeight);
+const y = taskYCoordinate(index, rowHeight, taskHeight);
 
   const x1 = x - taskHeight * 0.5;
   const x2 = x + taskHeight * 0.5;
@@ -353,8 +363,18 @@ const taskXCoordinateRTL = (
   columnWidth: number
 ) => {
   const x = taskXCoordinate(xDate, dates, columnWidth);
-  const MONTHLY_RTL_FIX = 173; 
-  return isMonthlyGrid(dates) ? (x + columnWidth - MONTHLY_RTL_FIX) : (x + columnWidth);
+  const MONTHLY_RTL_FIX = 85; 
+  const YEARLY_RTL_FIX = 288;
+  const WEEKLY_RTL_FIX = 230
+return isMonthlyGrid(dates)
+  ? (x + columnWidth - MONTHLY_RTL_FIX)
+  : isWeeklyGrid(dates)
+  ? (x + columnWidth - WEEKLY_RTL_FIX)
+  : isYearlyGrid(dates)
+  ? (x + columnWidth - YEARLY_RTL_FIX)
+  : (x + columnWidth);
+
+
 };
 const taskYCoordinate = (
   index: number,
