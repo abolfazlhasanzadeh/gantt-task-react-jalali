@@ -25,6 +25,7 @@ export interface Task {
   name: string;
   start: Date;
   end: Date;
+  wbsCode?: any;
   /**
    * From 0 to 100
    */
@@ -39,6 +40,7 @@ export interface Task {
   project?: string;
   dependencies?: any[];
   linkType?: LinkType; 
+  deadline?: Date;
   hideChildren?: boolean;
   displayOrder?: number;
 }
@@ -84,6 +86,16 @@ export interface EventOption {
   onExpanderClick?: (task: Task) => void;
 }
 
+export interface RtlFixBar {
+  weekly?: number,
+  monthly?: number,
+  yearly?: number,
+  quarter? :number,
+  Mweekly?:  number,
+  Mmonthly?: number,
+  Myearly?: number,
+  Mquarter?: number
+}
 export interface DisplayOption {
   viewMode?: ViewMode;
   viewDate?: Date;
@@ -95,7 +107,8 @@ export interface DisplayOption {
   rtl?: boolean;
   weekName?: string;
   quarterName?: string;
-  holidayHighlight?: HolidayHighlightOptions
+  holidayHighlight?: HolidayHighlightOptions;
+  RtlFixBar?: RtlFixBar  
 }
 
 export interface StylingOption {
@@ -137,6 +150,20 @@ export interface StylingOption {
     fontSize: string;
     fontFamily: string;
   }>;
+  TaskListHeaderAndTable?: React.FC<{
+      headerHeight: number;
+      rowWidth: string;
+      fontFamily: string;
+      fontSize: string;
+      titleLable: string;
+      fromLable: string;
+      toLable: string;
+      locale: string;
+      tasks: Task[];
+      selectedTaskId: string;
+      setSelectedTask: (taskId: string) => void;
+      onExpanderClick: (task: Task) => void;
+    }>
   TaskListHeader?: React.FC<{
     headerHeight: number;
     rowWidth: string;

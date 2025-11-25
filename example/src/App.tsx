@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Task, ViewMode, Gantt } from "gantt-task-react";
 import { ViewSwitcher } from "./components/view-switcher";
 import { getStartEndDateForProject } from "./helper";
@@ -80,6 +80,20 @@ const App = () => {
     console.log("On expander click Id:" + task.id);
   };
 
+const rtlFixBar = useMemo(
+    () => ({
+      weekly: 200,
+      Mweekly: 107,
+      monthly: 200,
+      Mmonthly: 200,
+      yearly: 363,
+      Myearly: 352,
+      quarter: 340,
+      Mquarter: 340,
+    }),
+    []
+  );
+
   return (
     <div className="Wrapper">
       <ViewSwitcher
@@ -124,6 +138,7 @@ const App = () => {
         listCellWidth={isChecked ? "155px" : ""}
         ganttHeight={300}
         columnWidth={columnWidth}
+        RtlFixBar={rtlFixBar}
       />
     </div>
   );

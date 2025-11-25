@@ -34,8 +34,6 @@ export const GridBody: React.FC<GridBodyProps> = ({
   rowHeight,
   svgWidth,
   columnWidth,
-  todayColor,
-  rtl,
   holidayHighlight
 }) => {
 
@@ -89,13 +87,11 @@ export const GridBody: React.FC<GridBodyProps> = ({
   const ticks: ReactChild[] = [];
   let today: ReactChild = <rect />;
 
-  // 👇 مستطیل‌های تعطیلی که می‌سازیم
   const holidaysRects: ReactChild[] = [];
 
   for (let i = 0; i < dates.length; i++) {
     const date = dates[i];
 
-    // خطوط عمودی
     ticks.push(
       <line
         key={`${date.getTime()}-${i}`}
@@ -107,12 +103,10 @@ export const GridBody: React.FC<GridBodyProps> = ({
       />
     );
 
-    // امروز (همان منطق اصلی)
     if (
       (i + 1 !== dates.length &&
         date.getTime() < now.getTime() &&
         dates[i + 1].getTime() >= now.getTime()) ||
-      // اگر آخرین ستون است
       (i !== 0 &&
         i + 1 === dates.length &&
         date.getTime() < now.getTime() &&
@@ -123,34 +117,24 @@ export const GridBody: React.FC<GridBodyProps> = ({
         ).getTime() >= now.getTime())
     ) {
       today = (
-        <rect
-          x={tickX}
-          y={0}
-          width={columnWidth}
-          height={y}
-          fill={todayColor}
-        />
+<rect
+  x={tickX + columnWidth}
+  y={0}
+  width={columnWidth}
+  height={y}
+  fill="none"
+  stroke={ "#1e5794"}
+  strokeWidth={2}
+strokeDasharray="4 6"
+  strokeLinecap="round"
+  vectorEffect="non-scaling-stroke"
+  shapeRendering="crispEdges"
+  opacity={0.8}
+/>
       );
-    }
-    // RTL today
-    if (
-      rtl &&
-      i + 1 !== dates.length &&
-      date.getTime() >= now.getTime() &&
-      dates[i + 1].getTime() < now.getTime()
-    ) {
-      today = (
-        <rect
-          x={tickX + columnWidth}
-          y={0}
-          width={columnWidth}
-          height={y}
-          fill={todayColor}
-        />
-      );
+
     }
 
-    // 👇 تعطیلات: جمعه‌ها + لیست سفارشی
     const isFriday = date.getDay() === 5;
     const isListed = holidaySet.has(toISO(date));
     if ((includeFridays && isFriday) || isListed) {
@@ -177,7 +161,6 @@ export const GridBody: React.FC<GridBodyProps> = ({
       <g className="rowLines">{rowLines}</g>
       <g className="ticks">{ticks}</g>
 
-      {/* ترتیب لایه: زیر یا روی today */}
 {placeUnderToday && daily && (
   <g className="holidays">{holidaysRects}</g>
 )}

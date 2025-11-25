@@ -19,5 +19,5 @@ export const tasks: GanttTask[] = [
   { id: "5234959", name: "فرزند اول پدرر نمونه 2", start: new Date(2025, 8, 29), end: new Date(2025, 9, 7), type: "task", progress: 34, project: "5225091", displayOrder: 7, dependencies: ["5234949"], linkType: "FS" },
   { id: "5234971", name: "فرزند دوم پدرر نمونه 2", start: new Date(2025, 8, 29), end: new Date(2025, 9, 2), type: "task", progress: 33, project: "5225091", displayOrder: 8, dependencies: ["5234949"], linkType: "FS" },
   { id: "-1", name: "شروع", start: new Date(2025, 8, 25), end: new Date(2025, 8, 25), type: "milestone", progress: 0, displayOrder: 12 },
-  { id: "-2", name: "پایان", end: new Date(2025, 9, 17), type: "milestone", progress: 0, displayOrder: 11 }
+  { id: "-2", name: "پایان", end: new Date(2025, 9, 20), type: "milestone", progress: 0, displayOrder: 11 }
 ];

@@ -1,4 +1,4 @@
-import { Task } from "../types/public-types";
+import { RtlFixBar, Task } from "../types/public-types";
 import { BarTask, TaskTypeInternal } from "../types/bar-task";
 import { BarMoveAction } from "../types/gantt-task-actions";
 
@@ -11,7 +11,7 @@ const uniqueAsc = (dates: Date[]) => {
     .sort((a, b) => a.getTime() - b.getTime())
     .filter(d => {
       const t = d.getTime();
-      if (seen.has(t)) return false; // جلوی دوبل‌ها (مثل اندیس 0 و 1 تو ماهانهٔ تو) رو می‌گیریم
+      if (seen.has(t)) return false; 
       seen.add(t);
       return true;
     });
@@ -31,23 +31,19 @@ const stepDays = (dates: Date[]) => {
   for (let i = 1; i < ds.length; i++) {
     diffs.push(ds[i].getTime() - ds[i - 1].getTime());
   }
-  // به‌جای میانگین از میانه استفاده می‌کنیم تا یکی دو اختلاف غیرعادی اثر نذاره
   return Math.round(median(diffs) / MS_DAY);
 };
 
 export const isYearlyGrid = (dates: Date[]) => {
   const d = stepDays(dates);
-  // سالانه: حدود 365 (لیپ‌یر و تغییر تقویم‌ها رو با تلورانس می‌پذیریم)
-  return d >= 330; // امن‌تر از 360 تا اگر مرزها دقیق اول سال نبود باز هم تشخیص بده
+  return d >= 330; 
 };
 
 export const isMonthlyGrid = (dates: Date[]) => {
   const d = stepDays(dates);
-  // ماهانه (شمسی/میلادی): معمولاً 29..31 روز، برای اطمینان 27..33 گذاشتیم
   return d >= 27 && d <= 33;
 };
 
-// اگه لازم شد:
 export const isWeeklyGrid = (dates: Date[]) => {
   const d = stepDays(dates);
   return d >= 6 && d <= 8;
@@ -55,8 +51,14 @@ export const isWeeklyGrid = (dates: Date[]) => {
 
 export const isDailyGrid = (dates: Date[]) => {
   const d = stepDays(dates);
-  return d >= 1 && d <= 1; // گرد شده
+  return d >= 1 && d <= 1; 
 };
+
+export const isQuarterlyGrid = (dates: Date[]) => {
+  const d = stepDays(dates);
+  return d >= 80 && d <= 100;
+};
+
 
 export const convertToBarTasks = (
   tasks: Task[],
@@ -76,7 +78,8 @@ export const convertToBarTasks = (
   projectBackgroundColor: string,
   projectBackgroundSelectedColor: string,
   milestoneBackgroundColor: string,
-  milestoneBackgroundSelectedColor: string
+  milestoneBackgroundSelectedColor: string,
+  RtlFixBar?: RtlFixBar
 ) => {
   let barTasks = tasks.map((t, i) => {
     return convertToBarTask(
@@ -98,7 +101,8 @@ export const convertToBarTasks = (
       projectBackgroundColor,
       projectBackgroundSelectedColor,
       milestoneBackgroundColor,
-      milestoneBackgroundSelectedColor
+      milestoneBackgroundSelectedColor,
+      RtlFixBar
     );
   });
 
@@ -136,7 +140,8 @@ const convertToBarTask = (
   projectBackgroundColor: string,
   projectBackgroundSelectedColor: string,
   milestoneBackgroundColor: string,
-  milestoneBackgroundSelectedColor: string
+  milestoneBackgroundSelectedColor: string,
+  RtlFixBar?: RtlFixBar
 ): BarTask => {
   let barTask: BarTask;
   switch (task.type) {
@@ -152,7 +157,7 @@ const convertToBarTask = (
         handleWidth,
         milestoneBackgroundColor,
         milestoneBackgroundSelectedColor,
-        rtl
+        RtlFixBar
       );
       break;
     case "project":
@@ -186,7 +191,8 @@ const convertToBarTask = (
         barProgressColor,
         barProgressSelectedColor,
         barBackgroundColor,
-        barBackgroundSelectedColor
+        barBackgroundSelectedColor,
+        RtlFixBar
       );
       break;
   }
@@ -206,16 +212,17 @@ const convertToBar = (
   barProgressColor: string,
   barProgressSelectedColor: string,
   barBackgroundColor: string,
-  barBackgroundSelectedColor: string
+  barBackgroundSelectedColor: string,
+  RtlFixBar?: RtlFixBar
 ): BarTask => {
   let x1: number;
   let x2: number;
   if (rtl) {
-    x2 = taskXCoordinateRTL(task.start, dates, columnWidth);    
-    x1 = taskXCoordinateRTL(task.end, dates, columnWidth);
+    x2 = taskXCoordinateRTL(task.start, dates, columnWidth, RtlFixBar);    
+    x1 = taskXCoordinateRTL(task.end, dates, columnWidth, RtlFixBar);
   } else {
-    x1 = taskXCoordinate(task.start, dates, columnWidth);
-    x2 = taskXCoordinate(task.end, dates, columnWidth);
+    x1 = taskXCoordinateRTL(task.start, dates, columnWidth, RtlFixBar);
+    x2 = taskXCoordinateRTL(task.end, dates, columnWidth, RtlFixBar);
   }
   let typeInternal: TaskTypeInternal = task.type;
   if (typeInternal === "task" && x2 - x1 < handleWidth * 2) {
@@ -268,23 +275,24 @@ const convertToMilestone = (
   handleWidth: number,
   milestoneBackgroundColor: string,
   milestoneBackgroundSelectedColor: string,
-  rtl = false 
+  RtlFixBar?: RtlFixBar
 ): BarTask => {
 
-const MONTHLY_RTL_FIX = 85;
-const YEARLY_RTL_FIX = 308;
-const WEEKLY_RTL_FIX = 230
-const x = rtl
-  ? (
+const MONTHLY_RTL_FIX = RtlFixBar?.Mmonthly ?? 85;
+const YEARLY_RTL_FIX = RtlFixBar?.Myearly ?? 308;
+const WEEKLY_RTL_FIX = RtlFixBar?.Mweekly ?? 230;
+const QUARTER_RTL_FIX = RtlFixBar?.Mquarter ?? 308;
+const x =
       isMonthlyGrid(dates)
         ? taskXCoordinate(task.start, dates, columnWidth) + columnWidth - MONTHLY_RTL_FIX
         : isWeeklyGrid(dates)
           ? taskXCoordinate(task.start, dates, columnWidth) + columnWidth - WEEKLY_RTL_FIX
           : isYearlyGrid(dates)
             ? taskXCoordinate(task.start, dates, columnWidth) + columnWidth - YEARLY_RTL_FIX
-            : taskXCoordinate(task.start, dates, columnWidth) + columnWidth
-    )
-  : taskXCoordinate(task.start, dates, columnWidth);
+            : isQuarterlyGrid(dates) 
+              ? taskXCoordinate(task.start, dates, columnWidth) + columnWidth - QUARTER_RTL_FIX
+              : taskXCoordinate(task.start, dates, columnWidth) + columnWidth
+    
 
 const y = taskYCoordinate(index, rowHeight, taskHeight);
 
@@ -360,21 +368,23 @@ const y = taskYCoordinate(index, rowHeight, taskHeight);
 const taskXCoordinateRTL = (
   xDate: Date,
   dates: Date[],
-  columnWidth: number
+  columnWidth: number,
+  RtlFixBar?: RtlFixBar
 ) => {
   const x = taskXCoordinate(xDate, dates, columnWidth);
-  const MONTHLY_RTL_FIX = 85; 
-  const YEARLY_RTL_FIX = 288;
-  const WEEKLY_RTL_FIX = 230
+  const MONTHLY_RTL_FIX = RtlFixBar?.monthly ?? 85; 
+  const YEARLY_RTL_FIX = RtlFixBar?.yearly ?? 288;
+  const WEEKLY_RTL_FIX = RtlFixBar?.weekly ?? 230
+  const QUARTERLY_RTL_FIX = (RtlFixBar?.quarter ?? RtlFixBar?.Mquarter) ?? 308;
 return isMonthlyGrid(dates)
   ? (x + columnWidth - MONTHLY_RTL_FIX)
   : isWeeklyGrid(dates)
   ? (x + columnWidth - WEEKLY_RTL_FIX)
+  : isQuarterlyGrid(dates)                      
+  ? (x + columnWidth - QUARTERLY_RTL_FIX)
   : isYearlyGrid(dates)
   ? (x + columnWidth - YEARLY_RTL_FIX)
   : (x + columnWidth);
-
-
 };
 const taskYCoordinate = (
   index: number,
@@ -486,13 +496,10 @@ const dateByX = (
 ) => {
   if (!Number.isFinite(xStep) || xStep === 0) return new Date(taskDate);
 
-  // فاصلهٔ زمانی متناظر با جابجایی پیکسلی
   const deltaMs = ((x - taskX) / xStep) * timeStep;
 
-  // در RTL جهت برعکس است
   const ms = taskDate.getTime() + (rtl ? -deltaMs : deltaMs);
 
-  // همان نرمال‌سازی اختلاف DST مثل قبل
   const newDate = new Date(ms);
   const offsetDiffMin =
     newDate.getTimezoneOffset() - taskDate.getTimezoneOffset();

@@ -20,6 +20,20 @@ export type TaskListProps = {
   selectedTask: BarTask | undefined;
   setSelectedTask: (task: string) => void;
   onExpanderClick: (task: Task) => void;
+  TaskListHeaderAndTable?: React.FC<{
+    headerHeight: number;
+    rowWidth: string;
+    fontFamily: string;
+    fontSize: string;
+    titleLable: string;
+    fromLable: string;
+    toLable: string;
+    locale: string;
+    tasks: Task[];
+    selectedTaskId: string;
+    setSelectedTask: (taskId: string) => void;
+    onExpanderClick: (task: Task) => void;
+  }>
   TaskListHeader: React.FC<{
     headerHeight: number;
     rowWidth: string;
@@ -62,6 +76,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   horizontalContainerClass,
   TaskListHeader,
   TaskListTable,
+  TaskListHeaderAndTable
 }) => {
   const horizontalContainerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -91,9 +106,24 @@ export const TaskList: React.FC<TaskListProps> = ({
     setSelectedTask,
     onExpanderClick,
   };
+  const TaskListHeaderAndTableProps = {
+    headerHeight,
+    rowWidth,
+    fontFamily,
+    fontSize,
+    titleLable,
+    fromLable,
+    toLable,
+    locale,
+    tasks,
+    selectedTaskId,
+    setSelectedTask,
+    onExpanderClick,
+  }
 
   return (
     <div ref={taskListRef}>
+      {TaskListHeaderAndTable ? <TaskListHeaderAndTable {...TaskListHeaderAndTableProps} /> : <div>
       <TaskListHeader {...headerProps} />
       <div
         ref={horizontalContainerRef}
@@ -101,7 +131,8 @@ export const TaskList: React.FC<TaskListProps> = ({
         style={ganttHeight ? { height: ganttHeight } : {}}
       >
         <TaskListTable {...tableProps} />
-      </div>
+      </div></div>
+      }
     </div>
   );
 };

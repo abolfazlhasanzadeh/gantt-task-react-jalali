@@ -4,18 +4,15 @@ import { INFO_ICON_PATH } from "../../../icons/InfoIcon";
 type TooltipCtx = { name: string; start?: string | Date; end?: string | Date; progress?: number | null | undefined };
 
 export type TaskBarMetaProps = {
-  // موقعیت
   xLabel: number;     // X لیبل اصلی
   y: number;          // Y وسط سطر (y + taskHeight/2)
   rtl: boolean;
 
-  // داده‌ها
   name: string;
   start?: string | Date;
   end?: string | Date;
   progress?: number | null;
 
-  // ظاهر/تنظیمات
   showPercent?: boolean;                 // default: true
   showDonut?: boolean;                   // default: true
   tooltip?: string[] | ((ctx: TooltipCtx) => string[]);
@@ -33,14 +30,12 @@ export type TaskBarMetaProps = {
   infoIconSize?: number;                 // default: 14
   infoIconColor?: string;                // default: "#6B7280"
 
-  // تم تولتیپ
   tooltipBg?: string;                    // default: "#111827"
   tooltipBgOpacity?: number;             // default: 0.95
   tooltipStroke?: string;                // default: "#FFFFFF"
   tooltipStrokeOpacity?: number;         // default: 0.08
   tooltipTextColor?: string;             // default: "#fff"
 
-  // بک‌گراند قرص‌شکل
   bgEnabled?: boolean;                   // default: true
   bgFill?: string;                       // default: "#fff"
   bgOpacity?: number;                    // default: 0.95
@@ -51,9 +46,10 @@ export type TaskBarMetaProps = {
   bgPadY?: number;                       // default: 6
   bgRadius?: number;                     // default: pill (height/2)
 
-  // هماهنگی با منطق لیبل
   isInside?: boolean;                    // default: false → اگر true شد، حول xLabel سنتر می‌کنیم
   outsideExtraGap?: number;              // default: 8 → وقتی بیرون است، به gapX اضافه می‌شود
+  deadline?: Date;          // اگر پروژه تاخیر داره
+  projectDelayLabel?: string; 
 };
 
 const clampPct = (v: number | null | undefined) =>
@@ -214,7 +210,9 @@ export default function TaskBarMeta(props: TaskBarMetaProps) {
 
     // هماهنگی inside/outside با لیبل
     isInside = false,
-    outsideExtraGap = 5,
+    outsideExtraGap = 3,
+    deadline,
+    projectDelayLabel = "تاخیر پروژه",
   } = props;
 
   const pct = clampPct(progress);
@@ -266,7 +264,7 @@ export default function TaskBarMeta(props: TaskBarMetaProps) {
   if (isInside) {
     baseX = rtl ? (xLabel + contentW / 2) : (xLabel - contentW / 2);
   } else {
-    baseX = rtl ? (xLabel - (gapX + outsideExtraGap)) : (xLabel + (gapX + outsideExtraGap));
+    baseX = rtl ? (xLabel - (outsideExtraGap)) : (xLabel + (gapX + outsideExtraGap));
   }
 
   // محلِ بک‌گراند نسبت به مبدا گروه
@@ -331,8 +329,33 @@ export default function TaskBarMeta(props: TaskBarMetaProps) {
     );
   }
 
+  const strip = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const toDate = (v?: string | Date) => {
+    if (!v) return undefined;
+    const d = v instanceof Date ? v : new Date(v);
+    return Number.isNaN(d.getTime()) ? undefined : strip(d);
+  };
+
+  const endD = toDate(end);
+  const deadlineD = toDate(deadline);
+
+  // اگر بیرون projectDelayed داده شده باشد همان را می‌گیریم؛ وگرنه محاسبه
+  const computedDelayed =
+      !!endD && !!deadlineD ? endD.getTime() > deadlineD.getTime() : false;
+    const delayLabelGap = 6;
+
+      console.log(endD);
+  console.log(deadlineD);
+  
+    let labelX = 0;
+    let labelAnchor: "start" | "end" = "start";
+
+    if (rtl) { labelX = bgX - delayLabelGap;        labelAnchor = "end"; }
+      else     { labelX = bgX + bgW + delayLabelGap;  labelAnchor = "start"; }
+
+
   return (
-    <g transform={`translate(${baseX}, ${y})`} style={{ pointerEvents: "visiblePainted" }}>
+    <g  transform={`translate(${baseX}, ${y})`} style={{ pointerEvents: "visiblePainted" }}>
       {bgEnabled && (
         <rect
           x={bgX}
@@ -348,7 +371,23 @@ export default function TaskBarMeta(props: TaskBarMetaProps) {
           style={{ pointerEvents: "none" }}
         />
       )}
+      {computedDelayed && (
+        <text
+          x={labelX}
+          y={0}                          // وسط عمودی قرص؛ اگر بخواهی بالای قرص باشد، بگذار y={bgY - 6}
+          textAnchor={labelAnchor}
+          dominantBaseline="middle"
+          fontSize="11"
+          fontWeight={700}
+          fill="#DC2626"
+          style={{ pointerEvents: "none" }}
+        >
+          {projectDelayLabel}
+        </text>
+        
+      )}
       {children}
     </g>
+
   );
 }

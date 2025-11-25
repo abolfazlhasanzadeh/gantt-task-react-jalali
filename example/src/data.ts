@@ -7,7 +7,7 @@ export const tsaks = {
 			"needCount": true,
 			"level": null,
 			"parentWorkBreakdownStructureId": null,
-			"workBreakdownStructureTitle": "فعالیت 29 مهر",
+			"workBreakdownStructureTitle": "11",
 			"automaticScheduling": null,
 			"duration": 2,
 			"startDateActivity": "2025-10-21",
@@ -72,6 +72,323 @@ export const tsaks = {
 			],
 			"firstLevelParent": false
 		},
+				{
+			"id": 5251949,
+			"needCount": true,
+			"level": null,
+			"parentWorkBreakdownStructureId": null,
+			"workBreakdownStructureTitle": "یک آبان",
+			"automaticScheduling": null,
+			"duration": 2,
+			"startDateActivity": "2025-10-23",
+			"endDateActivity": "2025-10-25",
+			"wbsCode": "2.2",
+			"confirmedActivityProgress": {
+				"source": "0.0",
+				"parsedValue": 0
+			},
+			"kind": null,
+			"group": null,
+			"isIndependentStart": null,
+			"lateStartDate": null,
+			"lateFinishDate": null,
+			"totalFloat": 0,
+			"isCritical": true,
+			"relationships": [
+				{
+					"id": null,
+					"needCount": true,
+					"targetActivityId": -2,
+					"targetWbsCode": null,
+					"relation": "FINISH_START",
+					"lag": 0,
+					"isCritical": true
+				}
+			],
+			"firstLevelParent": false
+		},
+				{
+			"id": 5251949,
+			"needCount": true,
+			"level": null,
+			"parentWorkBreakdownStructureId": null,
+			"workBreakdownStructureTitle": "یک آبان",
+			"automaticScheduling": null,
+			"duration": 2,
+			"startDateActivity": "2025-10-23",
+			"endDateActivity": "2025-10-25",
+			"wbsCode": "2.2",
+			"confirmedActivityProgress": {
+				"source": "0.0",
+				"parsedValue": 0
+			},
+			"kind": null,
+			"group": null,
+			"isIndependentStart": null,
+			"lateStartDate": null,
+			"lateFinishDate": null,
+			"totalFloat": 0,
+			"isCritical": true,
+			"relationships": [
+				{
+					"id": null,
+					"needCount": true,
+					"targetActivityId": -2,
+					"targetWbsCode": null,
+					"relation": "FINISH_START",
+					"lag": 0,
+					"isCritical": true
+				}
+			],
+			"firstLevelParent": false
+		},
+				{
+			"id": 5251949,
+			"needCount": true,
+			"level": null,
+			"parentWorkBreakdownStructureId": null,
+			"workBreakdownStructureTitle": "یک آبان",
+			"automaticScheduling": null,
+			"duration": 2,
+			"startDateActivity": "2025-10-23",
+			"endDateActivity": "2025-10-25",
+			"wbsCode": "2.2",
+			"confirmedActivityProgress": {
+				"source": "0.0",
+				"parsedValue": 0
+			},
+			"kind": null,
+			"group": null,
+			"isIndependentStart": null,
+			"lateStartDate": null,
+			"lateFinishDate": null,
+			"totalFloat": 0,
+			"isCritical": true,
+			"relationships": [
+				{
+					"id": null,
+					"needCount": true,
+					"targetActivityId": -2,
+					"targetWbsCode": null,
+					"relation": "FINISH_START",
+					"lag": 0,
+					"isCritical": true
+				}
+			],
+			"firstLevelParent": false
+		},
+				{
+			"id": 5251949,
+			"needCount": true,
+			"level": null,
+			"parentWorkBreakdownStructureId": null,
+			"workBreakdownStructureTitle": "یک آبان",
+			"automaticScheduling": null,
+			"duration": 2,
+			"startDateActivity": "2025-10-23",
+			"endDateActivity": "2025-10-25",
+			"wbsCode": "2.2",
+			"confirmedActivityProgress": {
+				"source": "0.0",
+				"parsedValue": 0
+			},
+			"kind": null,
+			"group": null,
+			"isIndependentStart": null,
+			"lateStartDate": null,
+			"lateFinishDate": null,
+			"totalFloat": 0,
+			"isCritical": true,
+			"relationships": [
+				{
+					"id": null,
+					"needCount": true,
+					"targetActivityId": -2,
+					"targetWbsCode": null,
+					"relation": "FINISH_START",
+					"lag": 0,
+					"isCritical": true
+				}
+			],
+			"firstLevelParent": false
+		},
+				{
+			"id": 5251949,
+			"needCount": true,
+			"level": null,
+			"parentWorkBreakdownStructureId": null,
+			"workBreakdownStructureTitle": "یک آبان",
+			"automaticScheduling": null,
+			"duration": 2,
+			"startDateActivity": "2025-10-23",
+			"endDateActivity": "2025-10-25",
+			"wbsCode": "2.2",
+			"confirmedActivityProgress": {
+				"source": "0.0",
+				"parsedValue": 0
+			},
+			"kind": null,
+			"group": null,
+			"isIndependentStart": null,
+			"lateStartDate": null,
+			"lateFinishDate": null,
+			"totalFloat": 0,
+			"isCritical": true,
+			"relationships": [
+				{
+					"id": null,
+					"needCount": true,
+					"targetActivityId": -2,
+					"targetWbsCode": null,
+					"relation": "FINISH_START",
+					"lag": 0,
+					"isCritical": true
+				}
+			],
+			"firstLevelParent": false
+		},
+				{
+			"id": 5251949,
+			"needCount": true,
+			"level": null,
+			"parentWorkBreakdownStructureId": null,
+			"workBreakdownStructureTitle": "یک آبان",
+			"automaticScheduling": null,
+			"duration": 2,
+			"startDateActivity": "2025-10-23",
+			"endDateActivity": "2025-10-25",
+			"wbsCode": "2.2",
+			"confirmedActivityProgress": {
+				"source": "0.0",
+				"parsedValue": 0
+			},
+			"kind": null,
+			"group": null,
+			"isIndependentStart": null,
+			"lateStartDate": null,
+			"lateFinishDate": null,
+			"totalFloat": 0,
+			"isCritical": true,
+			"relationships": [
+				{
+					"id": null,
+					"needCount": true,
+					"targetActivityId": -2,
+					"targetWbsCode": null,
+					"relation": "FINISH_START",
+					"lag": 0,
+					"isCritical": true
+				}
+			],
+			"firstLevelParent": false
+		},
+				{
+			"id": 5251949,
+			"needCount": true,
+			"level": null,
+			"parentWorkBreakdownStructureId": null,
+			"workBreakdownStructureTitle": "یک آبان",
+			"automaticScheduling": null,
+			"duration": 2,
+			"startDateActivity": "2025-10-23",
+			"endDateActivity": "2025-10-25",
+			"wbsCode": "2.2",
+			"confirmedActivityProgress": {
+				"source": "0.0",
+				"parsedValue": 0
+			},
+			"kind": null,
+			"group": null,
+			"isIndependentStart": null,
+			"lateStartDate": null,
+			"lateFinishDate": null,
+			"totalFloat": 0,
+			"isCritical": true,
+			"relationships": [
+				{
+					"id": null,
+					"needCount": true,
+					"targetActivityId": -2,
+					"targetWbsCode": null,
+					"relation": "FINISH_START",
+					"lag": 0,
+					"isCritical": true
+				}
+			],
+			"firstLevelParent": false
+		},
+
+				{
+			"id": 5251949,
+			"needCount": true,
+			"level": null,
+			"parentWorkBreakdownStructureId": null,
+			"workBreakdownStructureTitle": "یک آبان",
+			"automaticScheduling": null,
+			"duration": 2,
+			"startDateActivity": "2025-10-23",
+			"endDateActivity": "2025-10-25",
+			"wbsCode": "2.2",
+			"confirmedActivityProgress": {
+				"source": "0.0",
+				"parsedValue": 0
+			},
+			"kind": null,
+			"group": null,
+			"isIndependentStart": null,
+			"lateStartDate": null,
+			"lateFinishDate": null,
+			"totalFloat": 0,
+			"isCritical": true,
+			"relationships": [
+				{
+					"id": null,
+					"needCount": true,
+					"targetActivityId": -2,
+					"targetWbsCode": null,
+					"relation": "FINISH_START",
+					"lag": 0,
+					"isCritical": true
+				}
+			],
+			"firstLevelParent": false
+		},
+				{
+			"id": 5251949,
+			"needCount": true,
+			"level": null,
+			"parentWorkBreakdownStructureId": null,
+			"workBreakdownStructureTitle": "یک آبان",
+			"automaticScheduling": null,
+			"duration": 2,
+			"startDateActivity": "2025-10-23",
+			"endDateActivity": "2025-10-25",
+			"wbsCode": "2.2",
+			"confirmedActivityProgress": {
+				"source": "0.0",
+				"parsedValue": 0
+			},
+			"kind": null,
+			"group": null,
+			"isIndependentStart": null,
+			"lateStartDate": null,
+			"lateFinishDate": null,
+			"totalFloat": 0,
+			"isCritical": true,
+			"relationships": [
+				{
+					"id": null,
+					"needCount": true,
+					"targetActivityId": -2,
+					"targetWbsCode": null,
+					"relation": "FINISH_START",
+					"lag": 0,
+					"isCritical": true
+				}
+			],
+			"firstLevelParent": false
+		},
+		
 		{
 			"id": 5251506,
 			"needCount": true,
@@ -245,13 +562,21 @@ const toStyledDate = (iso?: string | null): Date | undefined => {
 };
 
 export function transformActivitiesToTasks(): GanttTask[] {
-const activities = tsaks.activities
+  const activities = tsaks.activities;
+
+  // 1) ددلاین پروژه را از نود END بگیر (id = -2 یا kind === "end")
+  const endAct = activities.find(
+    (a: any) => String(a?.id) === "-2" || a?.kind === "end"
+  );
+  const projectDeadline: Date | undefined = toStyledDate(endAct?.endDateActivity);
+
+  // 2) ساخت تسک‌ها
   const tasks: GanttTask[] = activities.map((a: any, i: number) => {
     let type: GanttTask["type"] = "task";
     if (a.kind === "start" || a.kind === "end" || a.duration === 0) type = "milestone";
 
     const start = toStyledDate(a.startDateActivity) ?? makeDate(1);
-    const end = toStyledDate(a.endDateActivity) ?? start;
+    const end   = toStyledDate(a.endDateActivity)   ?? start;
 
     const t: GanttTask = {
       id: String(a.id),
@@ -263,8 +588,19 @@ const activities = tsaks.activities
       displayOrder: i + 1,
     };
 
-    // group under top-level WBS like 2.1 -> 2
-    if (!a.firstLevelParent && typeof a.wbsCode === "string" && a.wbsCode.includes(".")) {
+    // 2.1) deadline را به تمام تسک‌های غیر Sentinel بده
+    // (TaskBarMeta خودش end را با deadline مقایسه می‌کند)
+    if (a.kind !== "start" && a.kind !== "end" && projectDeadline) {
+      (t as any).deadline = projectDeadline; // اگر تایپ GanttTask را آپدیت نکردی
+      // t.deadline = projectDeadline;       // اگر به تایپ اضافه‌اش کرده‌ای
+    }
+
+    // 2.2) گروه‌بندی زیر WBS سطح بالا (مثل 2.1 → 2)
+    if (
+      !a.firstLevelParent &&
+      typeof a.wbsCode === "string" &&
+      a.wbsCode.includes(".")
+    ) {
       const top = a.wbsCode.split(".")[0];
       const parent = activities.find((p: any) => p.wbsCode === top);
       if (parent) t.project = String(parent.id);
@@ -273,32 +609,34 @@ const activities = tsaks.activities
     return t;
   });
 
+  // 3) جدول lookup برای اتصال روابط
   const byId = new Map<string, GanttTask>(tasks.map(t => [t.id, t]));
   const get = (id: unknown) => byId.get(String(id));
 
+  // 4) اعمال روابط روی successorها
   for (const a of activities) {
     const predId = String(a.id);
 
     for (const rel of a.relationships ?? []) {
       const succId = String(rel.targetActivityId);
       if (succId === predId) continue;
-      if (isSentinel(succId)) continue;  // نخواهی START/END وارد گراف شوند
+      if (isSentinel(succId)) continue; // START/END وارد گراف نشوند
 
       const succTask = get(succId);
       if (!succTask) continue;
 
-      // ✅ وابستگی روی successor
+      // 4.1) وابستگی‌ها روی successor
       succTask.dependencies = succTask.dependencies ?? [];
       if (!succTask.dependencies.includes(predId)) {
         succTask.dependencies.push(predId);
       }
 
-      // ✅ نوع لینک per-edge روی successor
+      // 4.2) نوع لینک per-edge روی successor
       const lt = REL_MAP[rel.relation as RelationKind] ?? "FS";
       succTask.linkTypes = succTask.linkTypes ?? {};
       succTask.linkTypes[predId] = lt;
 
-      // خلاصه کلی (اختیاری)
+      // 4.3) خلاصه کلی (اختیاری)
       if (!succTask.linkType) succTask.linkType = lt;
       else if (succTask.linkType !== lt) succTask.linkType = "FS";
     }
@@ -306,3 +644,4 @@ const activities = tsaks.activities
 
   return tasks;
 }
+

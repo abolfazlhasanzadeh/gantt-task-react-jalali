@@ -235,7 +235,6 @@ export const getDaysInMonth = (month: number, year: number) => {
 
 
 
-// ===== Persian (Jalali) month boundaries =====
 
 type G = { gy: number; gm: number; gd: number };
 type J = { jy: number; jm: number; jd: number };
@@ -286,16 +285,13 @@ function d2j(jdn: number): J {
 export function toJalaali(d: Date): J { return d2j(g2d(d.getFullYear(), d.getMonth() + 1, d.getDate())); }
 export function toGregorian(jy: number, jm: number, jd: number): G { return d2g(j2d(jy, jm, jd)); }
 
-/** مرزهای ماه‌های جلالی برای بازه‌ی start..end */
 export function seedDatesJalaliMonths(start: Date, end: Date): Date[] {
   const sJ = toJalaali(start);
   let jy = sJ.jy, jm = sJ.jm;
 
-  // اولِ ماهِ جلالیِ جاری
   let g = toGregorian(jy, jm, 1);
   let cur = new Date(g.gy, g.gm - 1, g.gd);
 
-  // اگر این مرز بعد از start بود، یک ماه عقب
   if (cur > start) {
     jm--; if (jm < 1) { jm = 12; jy--; }
     g = toGregorian(jy, jm, 1);
@@ -317,7 +313,6 @@ export function seedDatesJalaliMonths(start: Date, end: Date): Date[] {
 export const isPersianCalendarLocale = (locale: string) =>
   /fa/i.test(locale) || /u-ca-persian/i.test(locale);
 
-// DTF برای گرفتن parts جلالی
 const jalaliDTF = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
   year: "numeric",
   month: "numeric",
@@ -332,7 +327,6 @@ const getJalaliParts = (d: Date) => {
   return { y, m, day };
 };
 
-// شروع ماه جلالی (با قدم‌های روزانه عقب می‌رویم تا روز=1)
 export const startOfJalaliMonth = (date: Date) => {
   let d = startOfDate(date, "day");
   while (getJalaliParts(d).day !== 1) {
@@ -341,13 +335,11 @@ export const startOfJalaliMonth = (date: Date) => {
   return d;
 };
 
-// تولید ستون‌ها بر اساس شروع ماه‌های جلالی در بازه
 export const seedDatesPersianMonth = (startDate: Date, endDate: Date) => {
   const out: Date[] = [];
   let d = startOfJalaliMonth(startDate);
   out.push(d);
   while (d < endDate) {
-    // بریم تا اول ماه جلالی بعدی
     let next = addToDate(d, 1, "day");
     while (getJalaliParts(next).day !== 1) {
       next = addToDate(next, 1, "day");
@@ -357,3 +349,20 @@ export const seedDatesPersianMonth = (startDate: Date, endDate: Date) => {
   }
   return out;
 };
+
+export function padDatesByLastStep(dates: Date[], howMany = 1): Date[] {
+  if (!dates?.length || howMany <= 0) return dates;
+  const n = dates.length;
+  const step =
+    n > 1 ? dates[n - 1].getTime() - dates[n - 2].getTime() : 365 * 24 * 3600 * 1000; 
+  const out = dates.slice();
+  for (let k = 0; k < howMany; k++) {
+    const nextTs = out[out.length - 1].getTime() + step;
+    const next = new Date(nextTs);
+    if (next.getTime() === out[out.length - 1].getTime()) {
+      next.setTime(next.getTime() + 1);
+    }
+    out.push(next);
+  }
+  return out;
+}

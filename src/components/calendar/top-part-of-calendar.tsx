@@ -9,7 +9,6 @@ type TopPartOfCalendarProps = {
   y2Line: number;
   xText: number;
   yText: number;
-  // 👇 اضافه: یک شناسهٔ یکتا از والد بگیر
   uid?: string;
 };
 
@@ -22,7 +21,6 @@ export const TopPartOfCalendar: React.FC<TopPartOfCalendarProps> = ({
   yText,
   uid,
 }) => {
-  // یک id یکتا بساز اگر والد نداد
   const safeUid =
     uid ??
     `tp-${x1Line}-${y1Line}-${y2Line}-${xText}-${yText}-${value}-${Math.random()
@@ -30,7 +28,7 @@ export const TopPartOfCalendar: React.FC<TopPartOfCalendarProps> = ({
       .slice(2, 7)}`;
 
   return (
-    <g className={styles.calendarTop} /* 👈 root key از بیرون داده می‌شود */>
+    <g className={styles.calendarTop} >
       <line
         key={`tp-line-${safeUid}`}
         x1={x1Line}

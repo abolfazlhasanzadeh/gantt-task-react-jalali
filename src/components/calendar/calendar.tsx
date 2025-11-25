@@ -1,19 +1,15 @@
-// src/components/calendar/calendar.tsx
 import React, { ReactChild } from "react";
 import { ViewMode } from "../../types/public-types";
 import { TopPartOfCalendar } from "./top-part-of-calendar";
 import {
   getCachedDateTimeFormat,
-  getDaysInMonth,
   getLocalDayOfWeek,
-  getWeekNumberISO8601,
 } from "../../helpers/date-helper";
 import { DateSetup } from "../../types/date-setup";
 import styles from "./calendar.module.css";
 
 export type CalendarProps = {
   dateSetup: DateSetup;
-  // locale را نادیده می‌گیریم و خودمان فارسی می‌گیریم
   locale?: string;
   viewMode: ViewMode;
   rtl: boolean;
@@ -25,7 +21,43 @@ export type CalendarProps = {
   quarterName: string;
 };
 
-// --- Persian calendar helpers (always-on) ---
+
+
+function getPersianDayOfMonth(date: Date) {
+  const f = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { day: "numeric" });
+  return Number(f.format(date).replace(/[^\d]/g, ""));
+}
+
+function isJalaliLeap(jy: number) {
+  const breaks = [-61,9,38,199,426,686,756,818,1111,1181,1210,1635,2060,2097,2192,2262,2324,2394,2456,3178];
+  let bl = breaks.length, jp = breaks[0], leapJ = -14;
+  for (let i = 1; i < bl; i++) {
+    const jm = breaks[i], jump = jm - jp;
+    if (jy < jm) break;
+    leapJ += Math.floor(jump / 33) * 8 + Math.floor((jump % 33) / 4);
+    jp = jm;
+  }
+  const N = jy - jp;
+  leapJ += Math.floor(N / 33) * 8 + Math.floor(((N % 33) + 3) / 4);
+  return ((leapJ + 1) % 33) === 0;
+}
+
+function jalaliDayOfYear(date: Date) {
+  const jy = getPersianYear(date);
+  const jm = getPersianMonthIdx(date);        
+  const jd = getPersianDayOfMonth(date);      
+  const lens = [31,31,31,31,31,31,30,30,30,30,30, isJalaliLeap(jy) ? 30 : 29];
+  let sum = jd;
+  for (let i = 0; i < jm; i++) sum += lens[i];
+  return sum; 
+}
+
+export function getWeekNumberJalali(date: Date) {
+  const doy = jalaliDayOfYear(date);     
+  return Math.floor((doy - 1) / 7) + 1;  
+}
+
+
 const PERSIAN_FMT_NUM = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
   year: "numeric",
   month: "numeric",
@@ -58,7 +90,6 @@ const monthLabelFA = (d: Date) => PERSIAN_FMT_MONTH_LONG.format(d);
 const yearLabelFA = (d: Date) => PERSIAN_FMT_YEAR.format(d);
 const dayNumericFA = (d: Date) => PERSIAN_FMT_DAY.format(d);
 
-// Day name را از helper خودت می‌گیریم (با توجه به RTL)
 const isSameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() &&
   a.getMonth() === b.getMonth() &&
@@ -66,7 +97,6 @@ const isSameDay = (a: Date, b: Date) =>
 
 export const Calendar: React.FC<CalendarProps> = ({
   dateSetup,
-  // locale را عملاً نادیده می‌گیریم و فارسی رندر می‌کنیم
   viewMode,
   rtl,
   headerHeight,
@@ -74,7 +104,6 @@ export const Calendar: React.FC<CalendarProps> = ({
   fontFamily,
   fontSize,
   weekName,
-  quarterName,
 }) => {
   const dates = dateSetup.dates || [];
 
@@ -87,7 +116,6 @@ export const Calendar: React.FC<CalendarProps> = ({
       const date = dates[i];
       const yFA = getPersianYear(date);
 
-      // bottom: سال شمسی
       bottomValues.push(
         <text
           key={`y-bottom-${yFA}-${i}`}
@@ -99,7 +127,6 @@ export const Calendar: React.FC<CalendarProps> = ({
         </text>
       );
 
-      // top: شروع سال شمسی جدید
       if (i === 0 || getPersianYear(date) !== getPersianYear(dates[i - 1])) {
         topValues.push(
           <TopPartOfCalendar
@@ -108,7 +135,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             x1Line={columnWidth * i}
             y1Line={0}
             y2Line={headerHeight}
-            xText={(6 + i - yFA) * columnWidth /* صرفاً برای جای‌گذاری */}
+            xText={(6 + i - yFA) * columnWidth }
             yText={topDefaultHeight * 0.9}
           />
         );
@@ -117,45 +144,53 @@ export const Calendar: React.FC<CalendarProps> = ({
     return [topValues, bottomValues] as const;
   };
 
-  const getCalendarValuesForQuarterYear = () => {
-    const topValues: ReactChild[] = [];
-    const bottomValues: ReactChild[] = [];
-    const topDefaultHeight = headerHeight * 0.5;
+const getCalendarValuesForQuarterYear = () => {
+  const topValues: ReactChild[] = [];
+  const bottomValues: ReactChild[] = [];
+  const topDefaultHeight = headerHeight * 0.5;
 
-    for (let i = 0; i < dates.length; i++) {
-      const date = dates[i];
-      const yFA = getPersianYear(date);
-      const mFA = getPersianMonthIdx(date); // 0..11
-      const q = Math.floor((mFA + 3) / 3); // 1..4
-      const quarter = `${quarterName}${q}`;
+  const seasonFA = (mFA: number) => {
+    if (mFA >= 0 && mFA <= 2) return "بهار";
+    if (mFA >= 3 && mFA <= 5) return "تابستان";
+    if (mFA >= 6 && mFA <= 8) return "پاییز";
+    return "زمستان"; 
+  };
 
-      bottomValues.push(
-        <text
-          key={`q-bottom-${yFA}-Q${q}-${i}`}
-          y={headerHeight * 0.8}
-          x={columnWidth * i + columnWidth * 0.5}
-          className={styles.calendarBottomText}
-        >
-          {quarter}
-        </text>
+  for (let i = 0; i < dates.length; i++) {
+    const date = dates[i];
+    const yFA = getPersianYear(date);
+    const mFA = getPersianMonthIdx(date); 
+    const season = seasonFA(mFA);
+
+    bottomValues.push(
+      <text
+        key={`season-bottom-${yFA}-${mFA}-${i}`}
+        y={headerHeight * 0.8}
+        x={columnWidth * i + columnWidth * 0.5}
+        className={styles.calendarBottomText}
+      >
+        {season}
+      </text>
+    );
+
+    if (i === 0 || getPersianYear(date) !== getPersianYear(dates[i - 1])) {
+      topValues.push(
+        <TopPartOfCalendar
+          key={`q-top-${yFA}-${i}`}
+          value={yearLabelFA(date)}               
+          x1Line={columnWidth * i}
+          y1Line={0}
+          y2Line={topDefaultHeight}
+          xText={Math.abs((6 + i - mFA) * columnWidth)}
+          yText={topDefaultHeight * 0.9}
+        />
       );
-
-      if (i === 0 || getPersianYear(date) !== getPersianYear(dates[i - 1])) {
-        topValues.push(
-          <TopPartOfCalendar
-            key={`q-top-${yFA}-${i}`}
-            value={yearLabelFA(date)}
-            x1Line={columnWidth * i}
-            y1Line={0}
-            y2Line={topDefaultHeight}
-            xText={Math.abs((6 + i - mFA) * columnWidth)}
-            yText={topDefaultHeight * 0.9}
-          />
-        );
-      }
     }
-    return [topValues, bottomValues] as const;
-  };
+  }
+
+  return [topValues, bottomValues] as const;
+};
+
 
   const getCalendarValuesForMonth = () => {
     const topValues: ReactChild[] = [];
@@ -167,7 +202,6 @@ export const Calendar: React.FC<CalendarProps> = ({
       const yFA = getPersianYear(date);
       const mFA = getPersianMonthIdx(date);
 
-      // bottom: نام ماه شمسی
       bottomValues.push(
         <text
           key={`m-bottom-${yFA}-${mFA}-${i}`}
@@ -179,7 +213,6 @@ export const Calendar: React.FC<CalendarProps> = ({
         </text>
       );
 
-      // top: شروع سال شمسی جدید
       if (i === 0 || getPersianYear(date) !== getPersianYear(dates[i - 1])) {
         topValues.push(
           <TopPartOfCalendar
@@ -197,6 +230,7 @@ export const Calendar: React.FC<CalendarProps> = ({
     return [topValues, bottomValues] as const;
   };
 
+  
   const getCalendarValuesForWeek = () => {
     const topValues: ReactChild[] = [];
     const bottomValues: ReactChild[] = [];
@@ -207,7 +241,7 @@ export const Calendar: React.FC<CalendarProps> = ({
       const date = dates[i];
       const yFA = getPersianYear(date);
       const mFA = getPersianMonthIdx(date);
-      const bottomValue = `${weekName}${getWeekNumberISO8601(date)}`;
+      const bottomValue = `${weekName}${getWeekNumberJalali(date)}`;
 
       bottomValues.push(
         <text
@@ -220,7 +254,6 @@ export const Calendar: React.FC<CalendarProps> = ({
         </text>
       );
 
-      // مرز تغییر «ماه شمسی»
       let topValue = "";
       if (i === 0 || getPersianMonthIdx(date) !== getPersianMonthIdx(dates[i - 1])) {
         topValue = `${monthLabelFA(date)}, ${yearLabelFA(date)}`;
@@ -247,86 +280,134 @@ export const Calendar: React.FC<CalendarProps> = ({
     return [topValues, bottomValues] as const;
   };
 
-  const getCalendarValuesForDay = () => {
-    const topValues: ReactChild[] = [];
-    const bottomValues: ReactChild[] = [];
 
-    const cardSize = Math.min(60, Math.max(40, headerHeight - 10));
-    const cardW = cardSize;
-    const cardH = cardSize;
-    const cardY = (headerHeight - cardH + 45) / 2;
+function groupMonthRuns(dates: Date[]) {
+  const runs: Array<{ start: number; end: number; label: string }> = [];
+  if (!dates.length) return runs;
 
-    const today = new Date();
+  let start = 0;
+  let curMonth = getPersianMonthIdx(dates[0]);
 
-    for (let i = 0; i < dates.length; i++) {
-      const date = dates[i];
-      const yFA = getPersianYear(date);
-      const mFA = getPersianMonthIdx(date);
-      const dayNum = dayNumericFA(date);
-      const dayName = getLocalDayOfWeek(date, "fa-IR", "long"); // نام روز فارسی
-      const xCenter = columnWidth * i + columnWidth * 0.5;
+  for (let i = 1; i < dates.length; i++) {
+    const m = getPersianMonthIdx(dates[i]);
 
-      const isToday = isSameDay(date, today);
-      const fill = isToday ? "#D2E7FD" : "#D2E7FD";
-      const textFill = isToday ? "#ffffff" : "#111827";
-
-      bottomValues.push(
-        <g key={`d-bottom-${yFA}-${mFA}-${date.getTime()}-${i}`}>
-          <rect
-            x={xCenter - cardW / 2}
-            y={cardY}
-            width={cardW}
-            height={45}
-            rx={8}
-            ry={8}
-            fill={fill}
-          />
-          <text
-            x={xCenter}
-            y={cardY + cardH / 2 - 18}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill={textFill}
-            fontFamily={fontFamily}
-            className={styles.calendarBottomText}
-          >
-            <tspan x={xCenter} dy="0" fontSize="14" fontWeight={700}>
-              {dayNum}
-            </tspan>
-            <tspan x={xCenter} dy="18" fontSize="12" fontWeight={500}>
-              {dayName}
-            </tspan>
-          </text>
-        </g>
-      );
-
-      // مرز تغییر «ماه شمسی»
-      if (i + 1 !== dates.length &&
-          getPersianMonthIdx(date) !== getPersianMonthIdx(dates[i + 1])) {
-        const mLabel = monthLabelFA(date);
-        const topDefaultHeight = headerHeight * 0.5;
-
-        topValues.push(
-          <TopPartOfCalendar
-            key={`d-top-${yFA}-${mFA}-${i}`}
-            value={mLabel}
-            x1Line={columnWidth * (i + 1)}
-            y1Line={0}
-            y2Line={topDefaultHeight}
-            xText={
-              columnWidth * (i + 1) -
-              getDaysInMonth(date.getMonth(), date.getFullYear()) * // فقط جهت تخمین پهنا
-                columnWidth *
-                0.5
-            }
-            yText={topDefaultHeight * 0.6}
-          />
-        );
-      }
+    if (m !== curMonth) {
+      runs.push({
+        start,
+        end: i - 1,
+        label: monthLabelFA(dates[i - 1]),
+      });
+      start = i;
+      curMonth = m;
     }
+  }
 
-    return [topValues, bottomValues] as const;
-  };
+  runs.push({
+    start,
+    end: dates.length - 1,
+    label: monthLabelFA(dates[dates.length - 1]),
+  });
+
+  return runs;
+}
+
+
+
+const getCalendarValuesForDay = () => {
+  const topValues: ReactChild[] = [];
+  const bottomValues: ReactChild[] = [];
+
+  const cardSize = Math.min(60, Math.max(40, headerHeight - 10));
+  const cardW = cardSize;
+  const cardH = cardSize;
+  const cardY = (headerHeight - cardH + 58) / 2;
+
+  const today = new Date();
+
+  const bandH = Math.max(18, headerHeight * 0.38);
+  const bandY = 5;
+
+  const monthRuns = groupMonthRuns(dates);
+
+monthRuns.forEach((run, idx) => {
+  const pad = Math.min(8, columnWidth * 0.15); 
+  const x1 = columnWidth * run.start + pad;     
+  const x2 = columnWidth * (run.end + 1) - pad; 
+  const width = Math.max(0, x2 - x1);
+
+  const midIdx = Math.floor((run.start + run.end) / 2);
+  const midX = columnWidth * midIdx + columnWidth * 0.5;
+
+  topValues.push(
+    <g key={`month-band-${idx}`} className={styles.calendarTop}>
+      <rect
+        x={x1}
+        y={bandY}
+        width={width}
+        height={bandH}
+        rx={6}
+        ry={6}
+        fill="#D2E7FD"
+        className={styles.calendarTopBand}
+      />
+      <text
+        x={midX}
+        y={bandY + bandH * 0.66}
+        textAnchor="middle"
+        className={styles.calendarTopText}
+        fontFamily={fontFamily}
+      >
+        {run.label}
+      </text>
+    </g>
+  );
+});
+
+  for (let i = 0; i < dates.length; i++) {
+    const date = dates[i];
+    const yFA = getPersianYear(date);
+    const mFA = getPersianMonthIdx(date);
+    const dayNum = dayNumericFA(date);
+    const dayName = getLocalDayOfWeek(date, "fa-IR", "long");
+    const xCenter = columnWidth * i + columnWidth * 0.5;
+
+    const isToday = isSameDay(date, today);
+    const fill = isToday ? "#D2E7FD" : "#D2E7FD";
+    const textFill = isToday ? "#ffffff" : "#111827";
+
+    bottomValues.push(
+      <g key={`d-bottom-${yFA}-${mFA}-${date.getTime()}-${i}`}>
+        <rect
+          x={xCenter - cardW / 2}
+          y={cardY}
+          width={cardW}
+          height={45}
+          rx={8}
+          ry={8}
+          fill={fill}
+        />
+        <text
+          x={xCenter}
+          y={cardY + cardH / 2 - 18}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill={textFill}
+          fontFamily={fontFamily}
+          className={styles.calendarBottomText}
+        >
+          <tspan x={xCenter} dy="0" fontSize="14" fontWeight={700}>
+            {dayNum}
+          </tspan>
+          <tspan x={xCenter} dy="18" fontSize="12" fontWeight={500}>
+            {dayName}
+          </tspan>
+        </text>
+      </g>
+    );
+  }
+
+  return [topValues, bottomValues] as const;
+};
 
   const getCalendarValuesForPartOfDay = () => {
     const topValues: ReactChild[] = [];

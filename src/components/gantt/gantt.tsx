@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { ViewMode, GanttProps, Task } from "../../types/public-types";
 import { GridProps } from "../grid/grid";
-import { addToDate, ganttDateRange, seedDates, seedDatesJalaliMonths, startOfDate, toGregorian, toJalaali } from "../../helpers/date-helper";
+import { addToDate, ganttDateRange, padDatesByLastStep, seedDates, seedDatesJalaliMonths, startOfDate, toGregorian, toJalaali } from "../../helpers/date-helper";
 import { CalendarProps } from "../calendar/calendar";
 import { TaskGanttContentProps } from "./task-gantt-content";
 import { TaskListHeaderDefault } from "../task-list/task-list-header";
@@ -26,7 +26,7 @@ import styles from "./gantt.module.css";
 
 export const Gantt: React.FunctionComponent<GanttProps> = ({
   tasks,
-  headerHeight = 65,
+  headerHeight = 75,
   columnWidth = 60,
   listCellWidth = "155px",
   titleLable = "Name",
@@ -66,6 +66,7 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   TooltipContent = StandardTooltipContent,
   TaskListHeader = TaskListHeaderDefault,
   TaskListTable = TaskListTableDefault,
+  TaskListHeaderAndTable, 
   onDateChange,
   onProgressChange,
   onDoubleClick,
@@ -73,7 +74,8 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   onDelete,
   onSelect,
   onExpanderClick,
-  holidayHighlight
+  holidayHighlight,
+  RtlFixBar
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const taskListRef = useRef<HTMLDivElement>(null);
@@ -107,7 +109,6 @@ export const Gantt: React.FunctionComponent<GanttProps> = ({
   const [scrollX, setScrollX] = useState(-1);
   const [ignoreScrollEvent, setIgnoreScrollEvent] = useState(false);
 
-  // task change events
   useEffect(() => {
     let filteredTasks: Task[];
     if (onExpanderClick) {
@@ -120,21 +121,23 @@ const [startDate, endDate] = ganttDateRange(filteredTasks, viewMode, preStepsCou
 
 let newDates = seedDates(startDate, endDate, viewMode);
 
-// فقط در ماهانه + فارسی: رنج را جلالی کن
 if (viewMode === ViewMode.Month && /^fa(?:-|$)/i.test(locale)) {
-  // شروع: ابتدای ماه جلالیِ (startDate - preStepsCount ماه)
   const s0 = startOfDate(addToDate(startDate, -1 * preStepsCount, "month"), "month");
-  // پایان: ابتدای «سال جلالیِ بعد»
   const ej = toJalaali(endDate);
   const gNextYearStart = toGregorian(ej.jy + 1, 1, 1);
   const e0 = new Date(gNextYearStart.gy, gNextYearStart.gm - 1, gNextYearStart.gd);
   newDates = seedDatesJalaliMonths(s0, e0);
 }
 
+if (viewMode === ViewMode.Year) {
+  newDates = padDatesByLastStep(newDates, 1);
+}
+
 if (rtl) {
   newDates = newDates.reverse();
   if (scrollX === -1) setScrollX(newDates.length * columnWidth);
 }
+
 setDateSetup({ dates: newDates, viewMode });
     setBarTasks(
       convertToBarTasks(
@@ -155,7 +158,8 @@ setDateSetup({ dates: newDates, viewMode });
         projectBackgroundColor,
         projectBackgroundSelectedColor,
         milestoneBackgroundColor,
-        milestoneBackgroundSelectedColor
+        milestoneBackgroundSelectedColor,
+        RtlFixBar
       )
     );
   }, [
@@ -180,6 +184,7 @@ setDateSetup({ dates: newDates, viewMode });
     rtl,
     scrollX,
     onExpanderClick,
+    RtlFixBar
   ]);
 
   useEffect(() => {
@@ -230,7 +235,6 @@ setDateSetup({ dates: newDates, viewMode });
             prevStateTask.end.getTime() !== changedTask.end.getTime() ||
             prevStateTask.progress !== changedTask.progress)
         ) {
-          // actions for change
           const newTaskList = barTasks.map(t =>
             t.id === changedTask.id ? changedTask : t
           );
@@ -470,6 +474,7 @@ setDateSetup({ dates: newDates, viewMode });
     onExpanderClick: handleExpanderClick,
     TaskListHeader,
     TaskListTable,
+    TaskListHeaderAndTable,
   };
   return (
     <div>

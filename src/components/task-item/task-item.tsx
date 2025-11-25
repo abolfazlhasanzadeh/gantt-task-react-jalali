@@ -80,7 +80,8 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     barContent,
   } = props;
 
-  const textRef = useRef<SVGTextElement>(null);
+  const labelTextRef = useRef<SVGTextElement>(null);
+  const metaRef = useRef<SVGGElement>(null);
   const [taskItem, setTaskItem] = useState<JSX.Element>(<div />);
   const [isTextInside, setIsTextInside] = useState(true);
 
@@ -105,14 +106,14 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [task, isSelected]);
 
-  useEffect(() => {
-    if (textRef.current) {
-      const width = task.x2 - task.x1;
-
-      const inside = textRef.current.getBBox().width < width;
-      setIsTextInside(isMilestone ? false : inside);
-    }
-  }, [task.x1, task.x2, task.name, isMilestone]);
+useEffect(() => {
+  if (labelTextRef.current) {
+    const width = task.x2 - task.x1;
+    const labelWidth = labelTextRef.current.getBBox().width;
+    const inside = labelWidth + 80  < width;
+    setIsTextInside(isMilestone ? false : inside);
+  }
+}, [task.x1, task.x2, task.name, isMilestone]);
 
   const getX = () => {
     const width = task.x2 - task.x1;
@@ -120,15 +121,15 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
     if (isTextInside) {
       return task.x1 + width * 0.5;
     }
-    if (rtl && textRef.current) {
+    if (rtl && labelTextRef.current) {
       return (
         task.x1 -
-        textRef.current.getBBox().width -
+        labelTextRef.current.getBBox().width -
         arrowIndent * +hasChild -
         arrowIndent * 0.2
       );
     } else {
-      return task.x1 + width + arrowIndent * +hasChild + arrowIndent * 0.2;
+      return task.x1 + width + arrowIndent * +hasChild
     }
   };
 
@@ -167,7 +168,7 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
       <text
         x={xLabel}
         y={centerY}
-        ref={textRef}
+        ref={labelTextRef}
         dominantBaseline="middle"
         textAnchor={isTextInside ? "middle" : (rtl ? "end" : "start")}
         style={{ opacity: 0, pointerEvents: "none" }}
@@ -176,13 +177,15 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
       </text>
 
       {barContent && (
+        <g ref={metaRef}>
         <TaskBarMeta
+          
           xLabel={xLabel}
           y={centerY}
           rtl={rtl}
           name={task.name}
           start={(task as any).start}
-          end={(task as any).end}
+          end={task.end}
           progress={task.progress}
 
           showPercent={barContent.showPercent}
@@ -208,7 +211,6 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
           tooltipStrokeOpacity={barContent.tooltipStrokeOpacity}
           tooltipTextColor={barContent.tooltipTextColor}
 
-          // بک‌گراند قرص‌شکل
           bgEnabled={barContent.bgEnabled}
           bgFill={barContent.bgFill}
           bgOpacity={barContent.bgOpacity}
@@ -219,10 +221,13 @@ export const TaskItem: React.FC<TaskItemProps> = props => {
           bgPadY={barContent.bgPadY}
           bgRadius={barContent.bgRadius}
 
-          // هماهنگی با لیبل:
           isInside={isTextInside}
           outsideExtraGap={barContent.outsideExtraGap ?? 5}
+          deadline={task.deadline} 
+          projectDelayLabel={`تاخیر پروژه `}
         />
+        
+        </g>
       )}
     </g>
   );
